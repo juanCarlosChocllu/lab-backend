@@ -1,11 +1,21 @@
-import { Injectable } from '@nestjs/common';
-import { CreateMarcaDto } from './dto/create-marca.dto';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { CreateMarcaDto } from './dto/createMarca.dto';
 import { UpdateMarcaDto } from './dto/update-marca.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Marca } from './schema/marca.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class MarcaService {
-  create(createMarcaDto: CreateMarcaDto) {
-    return 'This action adds a new marca';
+  constructor(@InjectModel(Marca.name) private readonly marca:Model<Marca>){}
+  async create(createMarcaDto: CreateMarcaDto) {
+    for (const data of createMarcaDto.data) {
+      const marca = await this.marca.findOne({nombre:data.nombre})
+      if(!marca){
+        await this.marca.create(data)
+      }
+    }
+    return {status:HttpStatus.CREATED};
   }
 
   findAll() {

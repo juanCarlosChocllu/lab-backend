@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { MarcaService } from './marca.service';
-import { CreateMarcaDto } from './dto/create-marca.dto';
+import { CreateMarcaDto } from './dto/createMarca.dto';
 import { UpdateMarcaDto } from './dto/update-marca.dto';
 
 @Controller('marca')

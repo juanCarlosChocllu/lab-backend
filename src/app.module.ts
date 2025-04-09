@@ -12,7 +12,6 @@ import { ProvidersModule } from './providers/providers.module';
 import { TiempoProduccionModule } from './tiempo-produccion/tiempo-produccion.module';
 import { TipoVisionModule } from './tipo-vision/tipo-vision.module';
 import { DetalleLenteModule } from './detalle-lente/detalle-lente.module';
-import { MaterialModule } from './material/material.module';
 import { TipoLenteModule } from './tipo-lente/tipo-lente.module';
 import { TipoColorModule } from './tipo-color/tipo-color.module';
 
@@ -21,6 +20,7 @@ import { MarcaModule } from './marca/marca.module';
 import { ColorModule } from './color/color.module';
 import { TratamientoModule } from './tratamiento/tratamiento.module';
 import { RangoModule } from './rango/rango.module';
+import { MaterialModule } from './material/material.module';
 
 @Module({
   imports: [
@@ -36,13 +36,13 @@ import { RangoModule } from './rango/rango.module';
     TiempoProduccionModule,
     TipoVisionModule,
     DetalleLenteModule,
-    MaterialModule,
     TipoLenteModule,
     TipoColorModule,
     MarcaModule,
     ColorModule,
     TratamientoModule,
     RangoModule,
+    MaterialModule,
   ],
   controllers: [],
   providers: [],

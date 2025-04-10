@@ -10,8 +10,10 @@ export class TratamientoService {
   constructor(@InjectModel(Tratamiento.name) private readonly tratamiento:Model<Tratamiento>){}
   async create(createTratamientoDto: CreateTratamientoDto) {
     for (const data of createTratamientoDto.data) {
-       await this.tratamiento.create(data)
-    
+      const tratamiento = await this.tratamiento.findOne({nombre:data.nombre})
+      if(!tratamiento) {
+        await this.tratamiento.create(data)
+      }
     }
     return {status:HttpStatus.CREATED};
   }

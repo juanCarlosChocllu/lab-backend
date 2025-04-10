@@ -17,10 +17,9 @@ import { TipoColorModule } from './tipo-color/tipo-color.module';
 
 
 import { MarcaModule } from './marca/marca.module';
-import { ColorModule } from './color/color.module';
 import { TratamientoModule } from './tratamiento/tratamiento.module';
 import { RangoModule } from './rango/rango.module';
-import { MaterialModule } from './material/material.module';
+import { ColorLenteModule } from './color-lente/color-lente.module';
 
 @Module({
   imports: [
@@ -36,13 +35,13 @@ import { MaterialModule } from './material/material.module';
     TiempoProduccionModule,
     TipoVisionModule,
     DetalleLenteModule,
+
     TipoLenteModule,
     TipoColorModule,
     MarcaModule,
-    ColorModule,
     TratamientoModule,
     RangoModule,
-    MaterialModule,
+    ColorLenteModule,
   ],
   controllers: [],
   providers: [],

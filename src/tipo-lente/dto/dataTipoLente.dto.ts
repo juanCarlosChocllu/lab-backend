@@ -1,7 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
-export class DataMaterialDto {
+export class DataTipoLenteDto {
   @IsNotEmpty()
   @IsString()
   @Transform(({ value }: { value: string }) => value.toUpperCase())

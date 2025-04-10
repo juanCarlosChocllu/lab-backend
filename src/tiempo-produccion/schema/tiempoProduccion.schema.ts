@@ -25,8 +25,10 @@ export class TiempoProduccion {
     estadoLente:string
     @Prop()
     estadoProeceso:string
-
     @Prop({type:Types.ObjectId, ref:'DetalleLente'})
     detalleLente:Types.ObjectId
+
+    @Prop({type:Types.ObjectId, ref:'Sucursal'})
+    sucursal:Types.ObjectId
 }
 export const tiempoProduccionSchema = SchemaFactory.createForClass(TiempoProduccion)

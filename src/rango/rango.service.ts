@@ -10,7 +10,10 @@ export class RangoService {
   constructor(@InjectModel(Rango.name) private readonly  rango:Model<Rango>){}
   async create(createRangoDto: CreateRangoDto) {
     for (const data of createRangoDto.data) {
+      const rango = await this.rango.findOne({nombre:data.nombre})
+      if(!rango){
         await this.rango.create(data)
+      }
     }
     return {status:HttpStatus.CREATED};
   }

@@ -13,15 +13,15 @@ export class SucursalService {
   ) {}
   async crearSucursal(nombre: string) {
     if (nombre != 'null') {
-      const sucursal = await this.sucursal.findOne({ nombre: nombre });
+      const sucursal = await this.sucursal.findOne({ nombre: nombre.toUpperCase() });
       if (!sucursal) {
-        return this.sucursal.create({ nombre: nombre });
+        return this.sucursal.create({ nombre: nombre.toUpperCase() });
       }
     }
   }
 
   verificarSucursal(nombre: string) {
-    return this.sucursal.exists({ nombre: nombre, flag: flagE.nuevo });
+    return this.sucursal.exists({ nombre: nombre.toUpperCase(), flag: flagE.nuevo });
   }
 
   findAll() {

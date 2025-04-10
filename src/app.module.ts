@@ -20,6 +20,7 @@ import { MarcaModule } from './marca/marca.module';
 import { TratamientoModule } from './tratamiento/tratamiento.module';
 import { RangoModule } from './rango/rango.module';
 import { ColorLenteModule } from './color-lente/color-lente.module';
+import { MaterialModule } from './material/material.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { ColorLenteModule } from './color-lente/color-lente.module';
     TratamientoModule,
     RangoModule,
     ColorLenteModule,
+    MaterialModule
   ],
   controllers: [],
   providers: [],

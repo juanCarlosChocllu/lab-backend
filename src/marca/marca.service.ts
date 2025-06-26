@@ -18,6 +18,23 @@ export class MarcaService {
     return {status:HttpStatus.CREATED};
   }
 
+  
+  async verificarMarca(nombre:string){
+    const marca = await this.marca.findOne({nombre:nombre.toUpperCase()})
+    return marca
+  }
+
+    async registarMarcaLente(nombre: string, abreviaturaNovar: string) {
+    const marca = await this.marca.findOne({ nombre: nombre });
+    if (!marca) {
+      return await this.marca.create({
+        nombre: nombre,
+        abreviaturaNovar: abreviaturaNovar,
+      });
+    }
+    return marca;
+  }
+
   findAll() {
     return `This action returns all marca`;
   }

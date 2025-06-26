@@ -8,8 +8,8 @@ export class SucursalController {
   constructor(private readonly sucursalService: SucursalService) {}
 
   @Get()
-  findAll() {
-    return this.sucursalService.findAll();
+  listar() {
+    return this.sucursalService.listar();
   }
 
   @Get(':id')

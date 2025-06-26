@@ -15,5 +15,6 @@ import { TipoColor, tipoColorSchema } from './schema/tipoColor.schema';
     ],
   controllers: [TipoColorController],
   providers: [TipoColorService],
+  exports: [TipoColorService]
 })
 export class TipoColorModule {}

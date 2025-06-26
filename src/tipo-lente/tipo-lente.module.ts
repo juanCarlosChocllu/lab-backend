@@ -15,5 +15,6 @@ import { TipoLente, tipolenteSchema } from './schema/tipoLente.schema';
       ],
   controllers: [TipoLenteController],
   providers: [TipoLenteService],
+  exports: [TipoLenteService],
 })
 export class TipoLenteModule {}

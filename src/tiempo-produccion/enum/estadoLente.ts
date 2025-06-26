@@ -1,4 +1,5 @@
 export enum estadoLenteE {
-    terminado="TERMIANDO",
-    semiTerminado="SEMI TERMIANDO"
+    terminado="TERMINADO",
+    semiTerminado="SEMI TERMINADO"
 }
+

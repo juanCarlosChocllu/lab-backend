@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { TiempoProduccionService } from './tiempo-produccion.service';
+
 import { CreateTiempoProduccionDto } from './dto/createtiempoProduccion.dto';
 import { UpdateTiempoProduccionDto } from './dto/update-tiempo-produccion.dto';
 import { Types } from 'mongoose';
+import { TiempoProduccionService } from './tiempo-produccion.service';
 
 @Controller('tiempo/produccion')
 export class TiempoProduccionController {
@@ -15,6 +16,7 @@ export class TiempoProduccionController {
 
   @Get()
   findAll() {
+    
     return this.tiempoProduccionService.findAll();
   }
 
@@ -28,8 +30,5 @@ export class TiempoProduccionController {
     return this.tiempoProduccionService.update(+id, updateTiempoProduccionDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tiempoProduccionService.remove(+id);
-  }
+
 }

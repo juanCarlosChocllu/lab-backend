@@ -18,6 +18,21 @@ export class MaterialService {
     return {status:HttpStatus.CREATED};
   }
 
+  async verificarMaterial(nombre:string){
+    const material = await this.material.findOne({nombre:nombre.toUpperCase()})
+    return material
+  }
+
+   async registarMaterialLente(nombre: string, abreviaturaNovar: string) {
+    const material = await this.material.findOne({ nombre: nombre });
+    if (!material) {
+      return await this.material.create({
+        nombre: nombre,
+        abreviaturaNovar: abreviaturaNovar,
+      });
+    }
+    return material;
+  }
   findAll() {
     return `This action returns all material`;
   }

@@ -1,5 +1,5 @@
 import { ArrayMinSize, IsArray, ValidateNested } from "class-validator";
-import { DataRangoDto } from "./dataTratamiento.dto";
+import { DataRangoDto } from "./dataRango.dto";
 import { Type } from "class-transformer";
 
 export class CreateRangoDto {

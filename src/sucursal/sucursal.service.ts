@@ -24,8 +24,9 @@ export class SucursalService {
     return this.sucursal.exists({ nombre: nombre.toUpperCase(), flag: flagE.nuevo });
   }
 
-  findAll() {
-    return `This action returns all sucursal`;
+  async listar() {
+    const resultado = await this.sucursal.find()
+    return resultado;
   }
 
   findOne(id: number) {

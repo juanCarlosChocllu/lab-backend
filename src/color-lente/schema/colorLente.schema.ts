@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { BaseSchema } from 'src/core/schema/BaseSchema';
 
 @Schema({ collection: 'ColorLente' })
-export class ColorLente {
+export class ColorLente  extends BaseSchema{
   @Prop()
   codigo: string;
 
@@ -11,7 +12,8 @@ export class ColorLente {
   @Prop()
   abreviaturaNovar: string;
 
-  @Prop()
+
+  @Prop({type:Number, default:0})
   tiempo: number;
 }
 

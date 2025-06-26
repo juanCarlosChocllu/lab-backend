@@ -4,6 +4,7 @@ import { UpdateTipoColorDto } from './dto/update-tipo-color.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { TipoColor } from './schema/tipoColor.schema';
 import { Model } from 'mongoose';
+import { flagE } from 'src/core/enum/FlagEnum';
 
 @Injectable()
 export class TipoColorService {
@@ -18,8 +19,25 @@ export class TipoColorService {
    return {status:HttpStatus.CREATED}
   }
 
-  findAll() {
-    return `This action returns all tipoColor`;
+  async verificarTipoColor(nombre:string){
+    const tipoColor = await this.tipoColor.findOne({nombre:nombre.toUpperCase()})
+    return tipoColor
+  }
+
+    async registarTipoColorLente(nombre: string, abreviaturaNovar: string) {
+    const tipoColor = await this.tipoColor.findOne({ nombre: nombre });
+    if (!tipoColor) {
+      return await this.tipoColor.create({
+        nombre: nombre,
+        abreviaturaNovar: abreviaturaNovar,
+      });
+    }
+    return tipoColor;
+  }
+
+  async listar() {
+    const tipoLente = await this.tipoColor.find({ flag: flagE.nuevo });
+    return tipoLente;
   }
 
   findOne(id: number) {

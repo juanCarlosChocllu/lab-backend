@@ -1,34 +1,42 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Types } from "mongoose";
-import { flagE } from "src/core/enum/FlagEnum";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+import { flagE } from 'src/core/enum/FlagEnum';
+import { BaseSchema } from 'src/core/schema/BaseSchema';
 
-@Schema({collection:'Venta'})
-export class Venta {
-    
-    @Prop()
-    pedido:string
+@Schema({ collection: 'Venta' })
+export class Venta extends BaseSchema {
+  @Prop()
+  pedido: string;
 
-    @Prop()
-    estado:string
+  @Prop()
+  id_venta: string;
 
-    @Prop()
-    fechaVenta:Date
+  
 
-    @Prop()
-    fechaEstimada:Date
+  @Prop()
+  estado: string;
 
-    @Prop({type:Types.ObjectId,ref:'Producto'})
-    producto:Types.ObjectId
+  @Prop()
+  fechaVenta: Date;
 
-    @Prop({type:Types.ObjectId,ref:'sucursal'})
-    sucursal:Types.ObjectId
+  @Prop()
+  fechaEstimada: Date;
 
-    @Prop({type:String, enum:flagE, default:flagE.nuevo})
-    flag:string
+  @Prop()
+  codigo: string;
 
-    @Prop({type:Date, default:Date.now})
-    fecha:Date
+  @Prop()
+  descripcion: string;
+
+  @Prop()
+  descripcionCombinacion: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'sucursal' })
+  sucursal: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'CombinacionReceta' })
+  combinacionReceta: Types.ObjectId;
 }
 
-export const ventaSchema = SchemaFactory.createForClass(Venta)
-ventaSchema.index({pedido:1})
+export const ventaSchema = SchemaFactory.createForClass(Venta);
+ventaSchema.index({ pedido: 1 });

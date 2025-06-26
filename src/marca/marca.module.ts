@@ -15,5 +15,6 @@ import { Marca, marcaSchema } from './schema/marca.schema';
   ],
   controllers: [MarcaController],
   providers: [MarcaService],
+  exports:[MarcaService]
 })
 export class MarcaModule {}

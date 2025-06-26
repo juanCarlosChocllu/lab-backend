@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
+import { BaseSchema } from "src/core/schema/BaseSchema"
 
 @Schema({collection:'TipoColor'})
-export class TipoColor {
+export class TipoColor extends BaseSchema {
       @Prop()
         codigo:string
     
@@ -11,7 +12,7 @@ export class TipoColor {
         @Prop()
         abreviaturaNovar:string
     
-        @Prop()
+       @Prop({type:Number, default:0})
         tiempo:number
 }
 

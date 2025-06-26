@@ -13,8 +13,8 @@ export class TipoColorController {
   }
 
   @Get()
-  findAll() {
-    return this.tipoColorService.findAll();
+  listar() {
+    return this.tipoColorService.listar();
   }
 
   @Get(':id')

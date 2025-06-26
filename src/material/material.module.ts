@@ -15,5 +15,6 @@ import { Material, materialSchema } from './schema/material.schena';
     ],
   controllers: [MaterialController],
   providers: [MaterialService],
+  exports: [MaterialService]
 })
 export class MaterialModule {}

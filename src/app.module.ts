@@ -7,7 +7,7 @@ import { SeguimientoModule } from './seguimiento/seguimiento.module';
 import { CoreModule } from './core/core.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { databaseUrl } from './core/config/configDatabase';
+import { databaseUrl } from './core/config/variablesEntorno';
 import { ProvidersModule } from './providers/providers.module';
 import { TiempoProduccionModule } from './tiempo-produccion/tiempo-produccion.module';
 import { TipoVisionModule } from './tipo-vision/tipo-vision.module';
@@ -20,7 +20,10 @@ import { MarcaModule } from './marca/marca.module';
 import { TratamientoModule } from './tratamiento/tratamiento.module';
 import { RangoModule } from './rango/rango.module';
 import { ColorLenteModule } from './color-lente/color-lente.module';
-import { MaterialModule } from './material/material.module';
+import { MaterialModule } from './material/material.module';;
+import { CombinacionRecetaModule } from './combinacion-receta/combinacion-receta.module';
+import { LenteModule } from './lente/lente.module';
+import { CombinacionTiempoModule } from './combinacion-tiempo/combinacion-tiempo.module';
 
 @Module({
   imports: [
@@ -43,7 +46,10 @@ import { MaterialModule } from './material/material.module';
     TratamientoModule,
     RangoModule,
     ColorLenteModule,
-    MaterialModule
+    MaterialModule,
+    CombinacionRecetaModule,
+    LenteModule,
+    CombinacionTiempoModule
   ],
   controllers: [],
   providers: [],

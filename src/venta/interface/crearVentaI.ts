@@ -1,7 +1,7 @@
 import { Types } from "mongoose"
 
-export interface CrearVentaI{
-  
+export interface VentaI{
+        _id?:Types.ObjectId
         pedido:string
 
         estado:string
@@ -9,7 +9,13 @@ export interface CrearVentaI{
         fechaVenta:Date
 
         sucursal:Types.ObjectId
-   
-        producto:Types.ObjectId
+        codigo:string
+        descripcion:string
+
+        id_venta?:string
+
+        combinacionReceta?:Types.ObjectId
+        
+        descripcionCombinacion?:string
     
 }

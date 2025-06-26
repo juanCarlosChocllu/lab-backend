@@ -7,17 +7,39 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class ColorLenteService {
-  constructor(@InjectModel(ColorLente.name) private readonly colorLente:Model<ColorLente>){}
+  constructor(
+    @InjectModel(ColorLente.name)
+    private readonly colorLente: Model<ColorLente>,
+  ) {}
   async create(createColorLenteDto: CreateColorLenteDto) {
     for (const data of createColorLenteDto.data) {
-        const colorLente = await this.colorLente.findOne({nombre:data.nombre})
-        if(!colorLente){
-          await this.colorLente.create(data)
-        }
+      const colorLente = await this.colorLente.findOne({ nombre: data.nombre });
+      if (!colorLente) {
+        await this.colorLente.create(data);
+      }
     }
-    return {status:HttpStatus.CREATED};
+    return { status: HttpStatus.CREATED };
   }
 
+  async verificarColorLente(nombre: string) {
+    const colorLente = await this.colorLente.findOne({
+      nombre: nombre.toUpperCase(),
+    });
+    return colorLente;
+  }
+
+  async registarColorLente(nombre: string, abreviaturaNovar: string) {
+    const colorLente = await this.colorLente.findOne({ nombre: nombre });
+    if (!colorLente) {
+      return await this.colorLente.create({
+        nombre: nombre,
+        abreviaturaNovar: abreviaturaNovar,
+      });
+    }
+    return colorLente;
+  }
+
+  
   findAll() {
     return `This action returns all colorLente`;
   }

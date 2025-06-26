@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { BaseSchema } from 'src/core/schema/BaseSchema';
 @Schema({collection:'Marca'})
-export class Marca {
+export class Marca extends BaseSchema {
   @Prop()
   codigo: string;
 
@@ -10,7 +11,7 @@ export class Marca {
   @Prop()
   abreviaturaNovar: string;
 
-  @Prop()
+  @Prop({type:Number, default:0})
   tiempo: number;
 }
 

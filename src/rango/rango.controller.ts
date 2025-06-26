@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { RangoService } from './rango.service';
 import { CreateRangoDto } from './dto/createRango.dto';
 import { UpdateRangoDto } from './dto/update-rango.dto';
+import { DataRangoDto } from './dto/dataRango.dto';
+import { CrearRangoMia } from './dto/crearRangoMia.dto';
 
 @Controller('rango')
 export class RangoController {
@@ -12,15 +14,13 @@ export class RangoController {
     return this.rangoService.create(createRangoDto);
   }
 
-  @Get()
-  findAll() {
-    return this.rangoService.findAll();
+  
+  @Post('registrar')
+  registrarRangoMia(@Body() crearRangoMia: CrearRangoMia) {
+    return this.rangoService.registrarRangoMia(crearRangoMia);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.rangoService.findOne(+id);
-  }
+
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateRangoDto: UpdateRangoDto) {

@@ -3,7 +3,8 @@ import { CreateTratamientoDto } from './dto/createTratamiento.dto';
 import { UpdateTratamientoDto } from './dto/update-tratamiento.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Tratamiento } from './schema/tratamiento.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import { flagE } from 'src/core/enum/FlagEnum';
 
 @Injectable()
 export class TratamientoService {
@@ -18,12 +19,35 @@ export class TratamientoService {
     return {status:HttpStatus.CREATED};
   }
 
-  findAll() {
-    return `This action returns all tratamiento`;
+  async listarTratamientoPorAbreviatura(abreviatura:string){
+  const tratamiento = await this.tratamiento.findOne({abreviaturaNovar:abreviatura.toUpperCase()})
+  return tratamiento
+}
+async verificarTratamiento(nombre:string){
+  const tratamiento = await this.tratamiento.findOne({nombre:nombre.toUpperCase()})
+  return tratamiento
+}
+
+
+  async registarTratamientoLenteLente(nombre: string, abreviaturaNovar: string) {
+    const tratamiento = await this.tratamiento.findOne({ nombre: nombre });
+    if (!tratamiento) {
+      return await this.tratamiento.create({
+        nombre: nombre,
+        abreviaturaNovar: abreviaturaNovar,
+      });
+    }
+    return tratamiento;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} tratamiento`;
+
+ async listar() {
+    const tratamiento = await this.tratamiento.find({ flag: flagE.nuevo });
+    return tratamiento;
+  }
+  async findOne(id: Types.ObjectId) {
+   const tratamiento = await this.tratamiento.findOne({_id:new Types.ObjectId(id)})
+  return tratamiento
   }
 
   update(id: number, updateTratamientoDto: UpdateTratamientoDto) {

@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { TiempoProduccionService } from './tiempo-produccion.service';
-import { TiempoProduccionController } from './tiempo-produccion.controller';
+
+import { TiempoProduccionController } from './tiempoProduccion.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TiempoProduccion, tiempoProduccionSchema } from './schema/tiempoProduccion.schema';
+import { TiempoProduccionService } from './tiempo-produccion.service';
 
 @Module({
    imports: [
@@ -16,5 +17,6 @@ import { TiempoProduccion, tiempoProduccionSchema } from './schema/tiempoProducc
     ],
   controllers: [TiempoProduccionController],
   providers: [TiempoProduccionService],
+  exports:[TiempoProduccionService]
 })
 export class TiempoProduccionModule {}

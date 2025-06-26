@@ -15,5 +15,6 @@ import { ColorLente, colorLenteSchema } from './schema/colorLente.schema';
       ],
   controllers: [ColorLenteController],
   providers: [ColorLenteService],
+  exports: [ColorLenteService]
 })
 export class ColorLenteModule {}

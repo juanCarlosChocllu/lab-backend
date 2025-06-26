@@ -13,14 +13,11 @@ export class TratamientoController {
   }
 
   @Get()
-  findAll() {
-    return this.tratamientoService.findAll();
+  listar() {
+    return this.tratamientoService.listar();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tratamientoService.findOne(+id);
-  }
+  
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTratamientoDto: UpdateTratamientoDto) {

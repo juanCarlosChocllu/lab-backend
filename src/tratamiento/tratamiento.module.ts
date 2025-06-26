@@ -15,5 +15,6 @@ import { Tratamiento, tratamientoSchema } from './schema/tratamiento.schema';
   ],
   controllers: [TratamientoController],
   providers: [TratamientoService],
+    exports:[TratamientoService]
 })
 export class TratamientoModule {}

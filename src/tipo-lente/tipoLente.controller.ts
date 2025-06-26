@@ -1,4 +1,4 @@
-import { Body, Controller,Post } from '@nestjs/common';
+import { Body, Controller,Get,Post } from '@nestjs/common';
 import { TipoLenteService } from './tipoLente.service';
 import { CrearTipoLenteDto } from './dto/crearTipoLente.dto';
 
@@ -9,5 +9,11 @@ export class TipoLenteController {
   @Post()
   create(@Body() CrearTipoLenteDto:CrearTipoLenteDto ) {
       return this.tipoLenteService.create(CrearTipoLenteDto)
+  }
+
+  
+  @Get()
+  listar() {
+      return this.tipoLenteService.listar()
   }
 }

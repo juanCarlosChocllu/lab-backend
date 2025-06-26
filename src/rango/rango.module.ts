@@ -15,5 +15,6 @@ import { Rango, rangoSchema } from './schema/rango.schema';
         ],
   controllers: [RangoController],
   providers: [RangoService],
+  exports:[RangoService]
 })
 export class RangoModule {}

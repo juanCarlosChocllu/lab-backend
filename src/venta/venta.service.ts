@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Type } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateVentaDto } from './dto/create-venta.dto';
 import { UpdateVentaDto } from './dto/update-venta.dto';
 import { Venta } from './schema/venta.schema';
@@ -12,23 +12,17 @@ import { PaginadorDto } from 'src/core/dto/paginadorDto';
 import { TiempoProduccionService } from 'src/tiempo-produccion/tiempo-produccion.service';
 import { RangoService } from 'src/rango/rango.service';
 import { TratamientoService } from 'src/tratamiento/tratamiento.service';
-import { Seguimiento } from 'src/seguimiento/schema/seguimiento.schema';
-import { estadoLenteE } from 'src/tiempo-produccion/enum/estadoLente';
+
 import { skip } from 'src/core/util/skip';
 import { paginas } from 'src/core/util/paginas';
 import { VentasAggregateI } from './interface/ventasInterface';
-import { MarcaService } from 'src/marca/marca.service';
-import { TipoLenteService } from 'src/tipo-lente/tipoLente.service';
-import { ColorLenteService } from 'src/color-lente/colorLente.service';
-import { MaterialService } from 'src/material/material.service';
-import { TipoColorService } from 'src/tipo-color/tipoColor.service';
-import { CombinacionReceta } from 'src/combinacion-receta/schema/combinacion-receta.schema';
+
 import { CombinacionRecetaService } from 'src/combinacion-receta/combinacion-receta.service';
-import { combinacionReceta } from 'src/combinacion-receta/interface/combinacionReceta';
+
 import { CombinacionTiempoService } from 'src/combinacion-tiempo/combinacion-tiempo.service';
 import { CombinacionTiempoI } from 'src/combinacion-tiempo/interface/combinacionTiempo';
 import { estadoAntireflejoE } from 'src/tiempo-produccion/enum/estadoAntireflejo';
-import { estadProcesoE } from 'src/tiempo-produccion/enum/estadoProceso';
+
 import { TipoLenteE } from 'src/combinacion-tiempo/enum/tipoLente';
 import { RangoTipoE } from 'src/core/enum/rangoE';
 
@@ -66,17 +60,7 @@ export class VentaService {
 
     const pipeline: PipelineStage[] = [
       { $match: { flag: flagE.nuevo } },
-      {
-        $lookup: {
-          from: 'Sucursal',
-          foreignField: '_id',
-          localField: 'sucursal',
-          as: 'sucursal',
-        },
-      },
-      {
-        $unwind: { path: '$sucursal', preserveNullAndEmptyArrays: false },
-      },
+
       {
         $project: {
           estado: 1,
@@ -86,7 +70,8 @@ export class VentaService {
           fechaVenta: 1,
           combinacionReceta: 1,
           descripcionCombinacion: 1,
-          sucursal: '$sucursal.nombre',
+          sucursal: 1,
+          id_venta: 1,
         },
       },
       {
@@ -111,7 +96,7 @@ export class VentaService {
         (a, b) => a.fechaTracking.getTime() - b.fechaTracking.getTime(),
       );
       console.log(venta.pedido);
-      
+
       const tiempoTranscurridoTransporte =
         this.obtenerTiempoTransporte(seguimiento);
       const obtenerTiemposDeTracking =
@@ -128,7 +113,7 @@ export class VentaService {
         estado: venta.estado,
         fechaVenta: venta.fechaVenta,
         pedido: venta.pedido,
-        producto: venta.codigo,
+        producto: venta.id_venta,
         descripcion: venta.descripcionCombinacion,
         timpoTranscurrido: obtenerTiemposDeTracking,
         entregaLaboratorio: entregaLaboratorio,
@@ -218,10 +203,8 @@ export class VentaService {
 
   private async obtenerTiempoPrometido(
     combinacion: Types.ObjectId,
-    sucursal: string,
+    sucursal: Types.ObjectId,
   ) {
-    let resultado: string;
-
     const comb = await this.combinacionRecetaService.buscarReceta(combinacion);
 
     if (comb) {
@@ -234,50 +217,35 @@ export class VentaService {
         tratamiento: comb.tratamiento,
       };
 
-      const [tiemposCombinacion, tratamiento, rango] = await Promise.all([
+      const [tiemposCombinacion, rango] = await Promise.all([
         this.combinacionTiempoService.buscarCombiancionTiempo(data),
-        this.tratamientoService.findOne(comb.tratamiento),
-        this.rangoService.findOne(comb.rango)
-      
+        this.rangoService.findOne(comb.rango),
       ]);
-
-
-      
-      if (tiemposCombinacion && tratamiento.nombre != 'SIN TRATAMIENTO') {
-        resultado = await this.tiempoPrometido(
+      if (tiemposCombinacion) {
+        const resultado: string = await this.tiempoPrometido(
           tiemposCombinacion._id,
-          estadoAntireflejoE.conAntireflejo,
-          rango.tipo
+          rango.tipo,
+          sucursal,
         );
+
+        return resultado;
       }
-      if (tiemposCombinacion && tratamiento.nombre == 'SIN TRATAMIENTO') {
-        resultado = await this.tiempoPrometido(
-          tiemposCombinacion._id,
-          estadoAntireflejoE.sinAntireflejo,
-          rango.tipo
-        );
-      }
-      return resultado;
     }
   }
 
   private async tiempoPrometido(
     combinacion: Types.ObjectId,
-    estadoAntireflejoE: estadoAntireflejoE,
-    tipo:RangoTipoE
+    tipo: RangoTipoE,
+    sucursal: Types.ObjectId,
   ) {
     let resultado: number = 0;
     const tiempo =
       await this.tiempoProduccionService.tiempoProduccionPorCombinacionTiempo(
         combinacion,
-        estadoAntireflejoE,
-        tipo
-
+        tipo,
+        sucursal,
       );
-      console.log(tipo);
-      
-    console.log(tiempo);
-    
+
     if (tiempo) {
       resultado =
         tiempo.recepcion +
@@ -289,6 +257,7 @@ export class VentaService {
         tiempo.tinte +
         tiempo.despacho +
         tiempo.controlCalidad +
+        tiempo.tiempoTransporte +
         tiempo.tiempoLogisticaEntrega;
     }
     const { dias, horasRestantes, minutosRestantes, totalHoras } =

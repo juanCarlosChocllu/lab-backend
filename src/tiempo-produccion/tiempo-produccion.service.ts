@@ -3,11 +3,16 @@ import { CreateTiempoProduccionDto } from './dto/createtiempoProduccion.dto';
 import { UpdateTiempoProduccionDto } from './dto/update-tiempo-produccion.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { TiempoProduccion } from './schema/tiempoProduccion.schema';
-import { Model, Types } from 'mongoose';
+import { Model, Types, PipelineStage } from 'mongoose';
 import { RangoTipoE } from 'src/core/enum/rangoE';
+import { PaginadorDto } from 'src/core/dto/paginadorDto';
+import { skip } from 'src/core/util/skip';
+import { flagE } from 'src/core/enum/FlagEnum';
+import { paginas } from 'src/core/util/paginas';
 
 @Injectable()
 export class TiempoProduccionService {
+
   constructor(@InjectModel(TiempoProduccion.name) private readonly tiempoProduccion:Model<TiempoProduccion>){}
   create(createTiempoProduccionDto: CreateTiempoProduccionDto) {
     createTiempoProduccionDto.combinacionTiempo = new Types.ObjectId(createTiempoProduccionDto.combinacionTiempo)
@@ -16,8 +21,16 @@ export class TiempoProduccionService {
     return {status:HttpStatus.CREATED};
   }
 
-  async findAll() {
-    const resultado = await this.tiempoProduccion.aggregate([
+
+  async findAll(paginadorDto : PaginadorDto) {
+   
+    const pipeline:PipelineStage[] = [
+      {
+        $skip:skip(paginadorDto.pagina, paginadorDto.limite)
+      },
+      {
+        $limit:paginadorDto.limite
+      },
       {
         $lookup:{
           from:'CombinacionTiempo',
@@ -79,6 +92,7 @@ export class TiempoProduccionService {
           estadoAntireflejo:1,
           estadoLente:1,
           estadoProeceso:1,
+          tiempoTransporte:1,
           tipo:1,
           tipoLente:'$combinacionTiempo.tipoLente',
           tipoColor:'$tipoColor.nombre',
@@ -86,10 +100,15 @@ export class TiempoProduccionService {
           sucursal:'$sucursal.nombre'
         }
       }
+     
+    ]
+    const [resultado,countDocuments ] = await Promise.all([
+      this.tiempoProduccion.aggregate(pipeline),
+      this.tiempoProduccion.countDocuments({flag:flagE.nuevo})
     ])
-    console.log(resultado);
-    
-    return resultado;
+    const cantidadPaginas = paginas(countDocuments, paginadorDto.limite)
+      
+    return {data:resultado, paginas:cantidadPaginas};
   }
 
   findOne(id: number) {
@@ -107,8 +126,8 @@ export class TiempoProduccionService {
     return tiempo
    }
 
-    async tiempoProduccionPorCombinacionTiempo(combinacionTiempo:Types.ObjectId, estadoAntireflejo:string, tipo:RangoTipoE) {
-    const tiempo = await this.tiempoProduccion.findOne({combinacionTiempo:new Types.ObjectId(combinacionTiempo), estadoAntireflejo:estadoAntireflejo, tipo:tipo})
+    async tiempoProduccionPorCombinacionTiempo(combinacionTiempo:Types.ObjectId,tipo:RangoTipoE, sucursal:Types.ObjectId) {
+      const tiempo = await this.tiempoProduccion.findOne({combinacionTiempo:new Types.ObjectId(combinacionTiempo) ,tipo:tipo, sucursal:new Types.ObjectId(sucursal)})
     return tiempo
    }
 

@@ -29,6 +29,8 @@ export class TiempoProduccion  extends BaseSchema{
     @Prop({default:0})
 
     despacho:number
+
+
     @Prop({default:0})
     controlCalidad:number
     
@@ -45,6 +47,9 @@ export class TiempoProduccion  extends BaseSchema{
     @Prop()
     estadoProeceso:string
 
+
+    @Prop({default:0})
+    tiempoTransporte:number
 
     @Prop({type:Types.ObjectId, ref:'CombinacionTiempo'})
     combinacionTiempo:Types.ObjectId

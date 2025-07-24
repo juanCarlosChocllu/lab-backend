@@ -1,11 +1,10 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { ConflictException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateCombinacionTiempoDto } from './dto/create-combinacion-tiempo.dto';
 import { UpdateCombinacionTiempoDto } from './dto/update-combinacion-tiempo.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { CombinacionTiempo } from './schema/combinacionTiempo.schema';
 import { Model, Types } from 'mongoose';
 import { CombinacionTiempoI } from './interface/combinacionTiempo';
-import { console } from 'inspector';
 
 @Injectable()
 export class CombinacionTiempoService {
@@ -22,37 +21,43 @@ export class CombinacionTiempoService {
     );
     createCombinacionTiempoDto.tipoLente = createCombinacionTiempoDto.tipoLente;
 
-    await this.combinacionTiempo.create(createCombinacionTiempoDto);
-    return { status: HttpStatus.CREATED };
+    const data = await this.combinacionTiempo.findOne(
+      createCombinacionTiempoDto,
+    );
+    if (!data) {
+      await this.combinacionTiempo.create(createCombinacionTiempoDto);
+      return { status: HttpStatus.CREATED };
+    }
+    throw new ConflictException();
   }
 
   async listar() {
     const resultado = await this.combinacionTiempo.aggregate([
       {
-        $lookup:{
-          from:'TipoColor',
-          foreignField:'_id',
-          localField:'tipoColor',
-          as:'tipoColor'
-        }
-      },
-       {
-        $lookup:{
-          from:'Tratamiento',
-          foreignField:'_id',
-          localField:'tratamiento',
-          as:'tratamiento'
-        }
+        $lookup: {
+          from: 'TipoColor',
+          foreignField: '_id',
+          localField: 'tipoColor',
+          as: 'tipoColor',
+        },
       },
       {
-        $project:{
-          tipoLente:1,
-          tratamiento:{$arrayElemAt:['$tratamiento.nombre',0]},
-          tipoColor:{$arrayElemAt:['$tipoColor.nombre',0]}
-        }
-      }
-    ])
-    return  resultado;
+        $lookup: {
+          from: 'Tratamiento',
+          foreignField: '_id',
+          localField: 'tratamiento',
+          as: 'tratamiento',
+        },
+      },
+      {
+        $project: {
+          tipoLente: 1,
+          tratamiento: { $arrayElemAt: ['$tratamiento.nombre', 0] },
+          tipoColor: { $arrayElemAt: ['$tipoColor.nombre', 0] },
+        },
+      },
+    ]);
+    return resultado;
   }
 
   async buscarCombiancionTiempo(data: CombinacionTiempoI) {

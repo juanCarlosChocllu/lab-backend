@@ -6,9 +6,10 @@ export interface VentasAggregateI {
   pedido: string;
   codigo: string;
   descripcion: string;
-  sucursal: string;
+  sucursal: Types.ObjectId;
   combinacionReceta:Types.ObjectId
   fechaVenta: Date;
   descripcionCombinacion:string
+  id_venta:string
   
 }

@@ -58,6 +58,11 @@ export class CreateTiempoProduccionDto {
   calculo: number;
 
   @IsNotEmpty()
+  @IsNumber()
+  @Min(0, { message: 'El valor de calculo no puede ser menor que cero' })
+  tiempoTransporte:number
+
+  @IsNotEmpty()
   @IsEnum(estadoAntireflejoE)
   estadoAntireflejo: string;
   @IsNotEmpty()

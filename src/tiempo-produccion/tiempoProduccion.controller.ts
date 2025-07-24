@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 
 import { CreateTiempoProduccionDto } from './dto/createtiempoProduccion.dto';
 import { UpdateTiempoProduccionDto } from './dto/update-tiempo-produccion.dto';
 import { Types } from 'mongoose';
 import { TiempoProduccionService } from './tiempo-produccion.service';
+import { PaginadorDto } from 'src/core/dto/paginadorDto';
 
 @Controller('tiempo/produccion')
 export class TiempoProduccionController {
@@ -15,9 +16,9 @@ export class TiempoProduccionController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Query() paginadorDto : PaginadorDto ) {
     
-    return this.tiempoProduccionService.findAll();
+    return this.tiempoProduccionService.findAll(paginadorDto);
   }
 
   @Get(':id')

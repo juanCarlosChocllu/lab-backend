@@ -25,6 +25,7 @@ import { combinacionReceta } from 'src/combinacion-receta/interface/combinacionR
 import { CombinacionRecetaService } from 'src/combinacion-receta/combinacion-receta.service';
 import { LenteService } from 'src/lente/lente.service';
 import { LenteVentaI } from 'src/lente/interface/lenteInterface';
+import { apiMia } from 'src/core/config/variablesEntorno';
 
 @Injectable()
 export class ProviderService {
@@ -42,7 +43,7 @@ export class ProviderService {
     private readonly materialService: MaterialService,
     private readonly tipoColorService: TipoColorService,
     private readonly combinacionRecetaService: CombinacionRecetaService,
-        private readonly lenteService: LenteService,
+    private readonly lenteService: LenteService,
   ) {}
 
   async lectura(archivo: string) {
@@ -52,6 +53,7 @@ export class ProviderService {
     });
     for await (const hojas of workbook) {
       this.regitrarData(hojas);
+      break
     }
     return { status: HttpStatus.OK };
   }
@@ -71,16 +73,15 @@ export class ProviderService {
     let contador = 0;
     for await (const filas of hojas) {
       contador++;
+      console.log(contador);
+
       if (contador === 1) continue;
       const pedido = String(filas.getCell(1).value);
+      console.log(pedido);
+
       const sucursal = String(filas.getCell(15).value);
       await this.guardarSucursal(sucursal);
-      const [venta, ventaMia] = await Promise.all([
-        this.ventaService.verificarVentaExiste(pedido),
-        this.apiVentaMia(pedido),
-      ]);
-      const combinacion = await this.registrarAtribustosLente(ventaMia);
-
+      const venta = await this.ventaService.verificarVentaExiste(pedido)
       if (venta) {
         const seguimiento: CrearSeguimiento = {
           tracking: String(filas.getCell(8).value),
@@ -93,22 +94,23 @@ export class ProviderService {
       } else {
         const sucursalEncontrada =
           await this.sucursalService.verificarSucursal(sucursal);
-
+           
         if (sucursalEncontrada) {
-          const ventaData: VentaI = {
+           const ventaMia = await this.apiVentaMia(pedido)
+           const combinacion = await this.registrarAtribustosLente(ventaMia);
+         const ventaData: VentaI = {
             codigo: String(filas.getCell(16).value),
             descripcion: String(filas.getCell(17).value),
             pedido: pedido,
             fechaVenta: this.formatoFecha(Number(filas.getCell(2).value)),
             estado: String(filas.getCell(7).value),
             sucursal: sucursalEncontrada._id,
-            ...(ventaMia && {descripcionCombinacion:ventaMia.descripcion}),
+            ...(ventaMia && { descripcionCombinacion: ventaMia.descripcion }),
             ...(combinacion && { combinacionReceta: combinacion._id }),
             ...(ventaMia && { id_venta: ventaMia.id_venta }),
           };
-        
+
           const venta = await this.ventaService.registrarVenta(ventaData);
-          await this.registarLente(ventaMia, venta.id)
           const seguimiento: CrearSeguimiento = {
             tracking: String(filas.getCell(8).value),
             reproceso: String(filas.getCell(11).value),
@@ -119,6 +121,7 @@ export class ProviderService {
           await this.seguimiento.crearSeguimiento(seguimiento);
         }
       }
+      
     }
   }
   private guardarSucursal(sucursal: string) {
@@ -127,8 +130,7 @@ export class ProviderService {
 
   private async apiVentaMia(numeroNovar: string): Promise<VentaApiMia> {
     try {
-      const url: string =
-        'http://localhost/opticentro/web/app_dev.php/api/venta/numeroNovar';
+      const url: string = `${apiMia}/api/venta/numeroNovar`;
       const token: string =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NzIyYTEyMTU5ZmZmMzAzYWY3ODkxNjYiLCJ1c2VybmFtZSI6Imthbm5hMiIsImlhdCI6MTczMzE0NTM0NCwiZXhwIjoxNzMzMTYzMzQ0fQ.p1wF-qQ_xLOjQ85vMFfxXCJBYEHgOqCcjmZ3YpU5Y2g';
       const response = await firstValueFrom(
@@ -137,6 +139,7 @@ export class ProviderService {
           token: token,
         }),
       );
+
       return response.data;
     } catch (error) {
       console.log(error);
@@ -145,101 +148,74 @@ export class ProviderService {
   }
 
   private async registrarAtribustosLente(data: VentaApiMia) {
+    console.log(data);
     
-      try {
+
+    try {
+      if (data) {
         const [
-        material,
-        marca,
-        rango,
-        tipoLente,
-        tipoColorLente,
-        colorLente,
-        tratamiento,
-      ] = await Promise.all([
-        this.materialService.registarMaterialLente(
-          data.material.nombre,
-          data.material.abreviaturaNovar,
-        ),
+          material,
+          marca,
+          rango,
+          tipoLente,
+          tipoColorLente,
+          colorLente,
+          tratamiento,
+        ] = await Promise.all([
+          this.materialService.registarMaterialLente(
+            data.material.nombre,
+            data.material.abreviaturaNovar,
+          ),
 
-        this.marcaService.registarMarcaLente(
-          data.marcaLente.nombre,
-          data.marcaLente.abreviaturaNovar,
-        ),
+          this.marcaService.registarMarcaLente(
+            data.marcaLente.nombre,
+            data.marcaLente.abreviaturaNovar,
+          ),
 
-        this.rangoService.registarRangoLente(
-          data.rango.nombre,
-          data.rango.abreviaturaNovar,
-        ),
+          this.rangoService.registarRangoLente(
+            data.rango.nombre,
+            data.rango.abreviaturaNovar,
+          ),
 
-        this.tipoLenteService.registarTipoLenteLente(
-          data.tipoLente.nombre,
-          data.tipoLente.abreviaturaNovar,
-        ),
+          this.tipoLenteService.registarTipoLenteLente(
+            data.tipoLente.nombre,
+            data.tipoLente.abreviaturaNovar,
+          ),
 
-        this.tipoColorService.registarTipoColorLente(
-          data.tipoColorLente.nombre,
-          data.tipoColorLente.abreviaturaNovar,
-        ),
+          this.tipoColorService.registarTipoColorLente(
+            data.tipoColorLente.nombre,
+            data.tipoColorLente.abreviaturaNovar,
+          ),
 
-        this.colorLenteService.registarColorLente(
-          data.ColorLente.nombre,
-          data.ColorLente.abreviaturaNovar,
-        ),
+          this.colorLenteService.registarColorLente(
+            data.ColorLente.nombre,
+            data.ColorLente.abreviaturaNovar,
+          ),
 
-        this.tratamientoService.registarTratamientoLenteLente(
-          data.tratamiento.nombre,
-          data.tratamiento.abreviaturaNovar,
-        ),
-      ]);
+          this.tratamientoService.registarTratamientoLenteLente(
+            data.tratamiento.nombre,
+            data.tratamiento.abreviaturaNovar,
+          ),
+        ]);
 
-      const combinacion: combinacionReceta = {
-        colorLente: colorLente._id,
-        marcaLente: marca._id,
-        material: material._id,
-        rango: rango._id,
-        tipoColorLente: tipoColorLente._id,
-        tipoLente: tipoLente._id,
-        tratamiento: tratamiento._id,
-      };
-     
-      const receta =
-        await this.combinacionRecetaService.registrarCombinacion(combinacion);
-      return receta;
-      } catch (error) {
-          console.log(data);
-          
+        const combinacion: combinacionReceta = {
+          colorLente: colorLente._id,
+          marcaLente: marca._id,
+          material: material._id,
+          rango: rango._id,
+          tipoColorLente: tipoColorLente._id,
+          tipoLente: tipoLente._id,
+          tratamiento: tratamiento._id,
+        };
+
+        const receta =
+          await this.combinacionRecetaService.registrarCombinacion(combinacion);
+        return receta;
       }
+    } catch (error) {
+      console.log(error);
     }
+  }
 
-    private async registarLente(ventaMia:VentaApiMia,venta:Types.ObjectId){
-      console.log(ventaMia);
-      
-      if(ventaMia.lente1){
-        const {antireflejo,grupoProducto,tipo,codigo} =ventaMia.lente1
-        const data:LenteVentaI ={
-          codigo,
-          antireflejo,
-          grupoProducto,
-          nombre:'LENTE 1',
-          tipo,
-          venta:venta
-        }
-        await this.lenteService.registrarLente(data)
-      }
-      if(ventaMia.lente2){
-          const {antireflejo,grupoProducto,tipo, codigo} =ventaMia.lente2
-        const data:LenteVentaI ={
-          codigo,
-          antireflejo,
-          grupoProducto,
-          nombre:'LENTE 2',
-          tipo,
-          venta:venta
-        }
-        await this.lenteService.registrarLente(data)
-      
-      }
 
-    }
-  
 }

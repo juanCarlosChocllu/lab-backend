@@ -25,6 +25,7 @@ import { estadoAntireflejoE } from 'src/tiempo-produccion/enum/estadoAntireflejo
 
 import { TipoLenteE } from 'src/combinacion-tiempo/enum/tipoLente';
 import { RangoTipoE } from 'src/core/enum/rangoE';
+import { BuscadorDto } from './dto/buscadorDto';
 
 @Injectable()
 export class VentaService {
@@ -55,11 +56,25 @@ export class VentaService {
     return venta;
   }
 
-  async tiemposEntrega(paginadorDto: PaginadorDto) {
-    const ventaData = [];
 
+
+  async tiemposEntrega(buscadorDto: BuscadorDto) {
+    const ventaData = [];
+    const filter = {
+      flag: flagE.nuevo,
+      sucursal: {
+        $in: buscadorDto.sucursal.map((item) => new Types.ObjectId(item)),
+      },
+      fechaVenta:{
+       $gte :new Date( new Date(buscadorDto.fechaInicio).setUTCHours(0,0,0,0)),
+       $lte :new Date( new Date(buscadorDto.fechaFin).setUTCHours(23,59,59,999)),
+      }
+      
+    };
+    console.log(filter);
+    
     const pipeline: PipelineStage[] = [
-      { $match: { flag: flagE.nuevo } },
+      { $match: filter },
 
       {
         $project: {
@@ -74,29 +89,18 @@ export class VentaService {
           id_venta: 1,
         },
       },
-      {
-        $skip: skip(paginadorDto.pagina, paginadorDto.limite),
-      },
-      {
-        $limit: paginadorDto.limite,
-      },
+    
     ];
 
-    const [ventas, countDocuments] = await Promise.all([
-      this.venta.aggregate(pipeline),
-      this.venta.countDocuments(),
-    ]);
+    const ventas= await this.venta.aggregate(pipeline)
 
     for (const venta of ventas as VentasAggregateI[]) {
       const seguimiento = await this.seguimientoService.seguimientoVenta(
         venta._id,
       );
-
       seguimiento.sort(
         (a, b) => a.fechaTracking.getTime() - b.fechaTracking.getTime(),
       );
-      console.log(venta.pedido);
-
       const tiempoTranscurridoTransporte =
         this.obtenerTiempoTransporte(seguimiento);
       const obtenerTiemposDeTracking =
@@ -127,7 +131,6 @@ export class VentaService {
 
     return {
       status: HttpStatus.OK,
-      paginas: paginas(countDocuments, paginadorDto.limite),
       data: ventaData,
     };
   }

@@ -29,7 +29,10 @@ export function convertirHorasADiasYMinutos(horas: number) {
   const dias = Math.floor(totalHoras / 24);
   const horasRestantes = totalHoras % 24;
 
-  return{
-    totalHoras, minutosRestantes, dias, horasRestantes
-  }
+  return {
+    totalHoras,
+    minutosRestantes,
+    dias,
+    horasRestantes,
+  };
 }

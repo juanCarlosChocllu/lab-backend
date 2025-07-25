@@ -39,4 +39,4 @@ export class Venta extends BaseSchema {
 }
 
 export const ventaSchema = SchemaFactory.createForClass(Venta);
-ventaSchema.index({ pedido: 1 });
+ventaSchema.index({ sucursal: 1, fechaVenta:1 });

@@ -1,14 +1,12 @@
-import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator"
+import { IsArray, IsDateString, IsMongoId, IsNotEmpty,} from "class-validator"
+import { Types } from "mongoose"
 
 export class BuscadorDto {
 
-    @IsOptional()
-    @IsString()
-    pedido:RegExp
-
-    @IsOptional()
-    @IsString()
-    idVenta:RegExp
+    
+    @IsMongoId({each:true})
+    @IsNotEmpty()
+    sucursal:Types.ObjectId[]
 
     @IsNotEmpty()
     @IsDateString()

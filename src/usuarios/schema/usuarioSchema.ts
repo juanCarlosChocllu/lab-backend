@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { BaseSchema } from "src/core/schema/BaseSchema";
 
-@Schema({collection:'Usuarios'})
+@Schema({collection:'Usuario'})
 export class Usuario extends BaseSchema {
 @Prop()
     nombre:string
@@ -14,7 +14,7 @@ export class Usuario extends BaseSchema {
     
     @Prop({select:false})
     password:string
-    
+
     @Prop()
     rol:string   
 }

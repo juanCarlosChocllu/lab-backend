@@ -24,6 +24,8 @@ import { MaterialModule } from './material/material.module';;
 import { CombinacionRecetaModule } from './combinacion-receta/combinacion-receta.module';
 import { LenteModule } from './lente/lente.module';
 import { CombinacionTiempoModule } from './combinacion-tiempo/combinacion-tiempo.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
+import { AutenticacionModule } from './autenticacion/autenticacion.module';
 
 @Module({
   imports: [
@@ -49,7 +51,9 @@ import { CombinacionTiempoModule } from './combinacion-tiempo/combinacion-tiempo
     MaterialModule,
     CombinacionRecetaModule,
     LenteModule,
-    CombinacionTiempoModule
+    CombinacionTiempoModule,
+    UsuariosModule,
+    AutenticacionModule
   ],
   controllers: [],
   providers: [],

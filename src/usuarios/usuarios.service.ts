@@ -1,11 +1,12 @@
-import { ConflictException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConflictException, HttpStatus, Injectable, NotAcceptableException } from '@nestjs/common';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import * as argon2 from 'argon2';
 import { InjectModel } from '@nestjs/mongoose';
 import { Usuario } from './schema/usuarioSchema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { flagE } from 'src/core/enum/FlagEnum';
+
 
 @Injectable()
 export class UsuariosService {
@@ -35,8 +36,17 @@ export class UsuariosService {
     return { status: HttpStatus.CREATED };
   }
 
-  findAll() {
-    return `This action returns all usuarios`;
+
+
+
+  buscarUsuario(username:string){
+    const usuario = this.usuario.findOne({username:username}).select('+password')
+    return usuario
+  }
+
+  async findAll() {
+    const usuarios = await this.usuario.find({flag:flagE.nuevo  })
+    return usuarios;
   }
 
   findOne(id: number) {
@@ -47,7 +57,12 @@ export class UsuariosService {
     return `This action updates a #${id} usuario`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} usuario`;
+  async softDelete(id: Types.ObjectId) {
+      const user = await this.usuario.findOne({_id:new Types.ObjectId(id)})
+      if(!user){
+        throw new NotAcceptableException();
+      }
+      await this.usuario.updateOne({_id:new Types.ObjectId(id)},{flag:flagE.eliminado})
+      return {status:HttpStatus.OK}
   }
 }

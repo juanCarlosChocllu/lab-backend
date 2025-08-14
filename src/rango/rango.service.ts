@@ -7,11 +7,14 @@ import { Model, Types } from 'mongoose';
 import { flagE } from 'src/core/enum/FlagEnum';
 import { DataRangoDto } from './dto/dataRango.dto';
 import { CrearRangoMia } from './dto/crearRangoMia.dto';
-import { key } from 'src/core/config/variablesEntorno';
+import { AppConfigService } from 'src/core/config/AppConfigService';
 
 @Injectable()
 export class RangoService {
-  constructor(@InjectModel(Rango.name) private readonly rango: Model<Rango>) {}
+  constructor(
+    @InjectModel(Rango.name) private readonly rango: Model<Rango>,
+    private readonly appConfigService:AppConfigService
+  ) {}
   async create(createRangoDto: CreateRangoDto) {
     for (const data of createRangoDto.data) {
       const rango = await this.rango.findOne({ nombre: data.nombre });
@@ -23,7 +26,7 @@ export class RangoService {
   }
 
   async registrarRangoMia(crearRangoMia: CrearRangoMia) {
-    if(crearRangoMia.key === key){
+    if(crearRangoMia.key === this.appConfigService.key){
       const rango = await this.rango.findOne({ nombre: crearRangoMia.nombre });
     if (!rango) {
       await this.rango.create(crearRangoMia);

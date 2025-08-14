@@ -25,7 +25,7 @@ import { combinacionReceta } from 'src/combinacion-receta/interface/combinacionR
 import { CombinacionRecetaService } from 'src/combinacion-receta/combinacion-receta.service';
 import { LenteService } from 'src/lente/lente.service';
 import { LenteVentaI } from 'src/lente/interface/lenteInterface';
-import { apiMia } from 'src/core/config/variablesEntorno';
+import { AppConfigService } from 'src/core/config/AppConfigService';
 
 @Injectable()
 export class ProviderService {
@@ -44,6 +44,7 @@ export class ProviderService {
     private readonly tipoColorService: TipoColorService,
     private readonly combinacionRecetaService: CombinacionRecetaService,
     private readonly lenteService: LenteService,
+        private readonly appConfigService: AppConfigService,
   ) {}
 
   async lectura(archivo: string) {
@@ -130,7 +131,7 @@ export class ProviderService {
 
   private async apiVentaMia(numeroNovar: string): Promise<VentaApiMia> {
     try {
-      const url: string = `${apiMia}/api/venta/numeroNovar`;
+      const url: string = `${this.appConfigService.apiMia}/api/venta/numeroNovar`;
       const token: string =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NzIyYTEyMTU5ZmZmMzAzYWY3ODkxNjYiLCJ1c2VybmFtZSI6Imthbm5hMiIsImlhdCI6MTczMzE0NTM0NCwiZXhwIjoxNzMzMTYzMzQ0fQ.p1wF-qQ_xLOjQ85vMFfxXCJBYEHgOqCcjmZ3YpU5Y2g';
       const response = await firstValueFrom(

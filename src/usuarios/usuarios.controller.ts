@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { Types } from 'mongoose';
+import { ValidardIdPipe } from 'src/core/util/validard-id.pipe';
 
 @Controller('usuarios')
 export class UsuariosController {
@@ -28,7 +30,7 @@ export class UsuariosController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usuariosService.remove(+id);
+  softDelete(@Param('id', ValidardIdPipe) id: Types.ObjectId) {
+    return this.usuariosService.softDelete(id);
   }
 }

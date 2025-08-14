@@ -15,12 +15,14 @@ import { TipoColorModule } from 'src/tipo-color/tipo-color.module';
 import { MaterialModule } from 'src/material/material.module';
 import { CombinacionRecetaModule } from 'src/combinacion-receta/combinacion-receta.module';
 import { LenteModule } from 'src/lente/lente.module';
+import { CoreModule } from 'src/core/core.module';
 
 
 @Module({
     imports:[
       HttpModule,
       CombinacionRecetaModule,
+      CoreModule,
     VentaModule, SeguimientoModule, LenteModule,ProductoModule, SucursalModule, TratamientoModule, TipoLenteModule, ColorLenteModule, RangoModule, MaterialModule, MarcaModule, TipoColorModule],
   providers: [ProviderService],
   controllers: [ExcelController]

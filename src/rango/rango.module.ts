@@ -3,6 +3,7 @@ import { RangoService } from './rango.service';
 import { RangoController } from './rango.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Rango, rangoSchema } from './schema/rango.schema';
+import { CoreModule } from 'src/core/core.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { Rango, rangoSchema } from './schema/rango.schema';
               schema: rangoSchema,
             },
           ]),
+          CoreModule
         ],
   controllers: [RangoController],
   providers: [RangoService],

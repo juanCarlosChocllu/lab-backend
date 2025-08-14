@@ -13,7 +13,6 @@ import { RangoService } from 'src/rango/rango.service';
 import { TipoColorService } from 'src/tipo-color/tipoColor.service';
 import { MarcaService } from 'src/marca/marca.service';
 import { combinacionReceta } from './interface/combinacionReceta';
-import { databaseUrl } from 'src/core/config/variablesEntorno';
 
 @Injectable()
 export class CombinacionRecetaService {

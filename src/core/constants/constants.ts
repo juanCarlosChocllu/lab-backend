@@ -1,0 +1,2 @@
+
+export const LLAVE_PUBLICA:string ='ESTAS ESTA UNA LLAVE PUBLICA'

@@ -7,7 +7,6 @@ import { SeguimientoModule } from './seguimiento/seguimiento.module';
 import { CoreModule } from './core/core.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { databaseUrl } from './core/config/variablesEntorno';
 import { ProvidersModule } from './providers/providers.module';
 import { TiempoProduccionModule } from './tiempo-produccion/tiempo-produccion.module';
 import { TipoVisionModule } from './tipo-vision/tipo-vision.module';
@@ -26,11 +25,29 @@ import { LenteModule } from './lente/lente.module';
 import { CombinacionTiempoModule } from './combinacion-tiempo/combinacion-tiempo.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { AutenticacionModule } from './autenticacion/autenticacion.module';
+import { AppConfigService } from './core/config/AppConfigService';
+import { APP_GUARD } from '@nestjs/core';
+import { TokenGuard } from './core/guards/token/token.guard';
+import { JwtModule } from '@nestjs/jwt';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(databaseUrl),
+    ThrottlerModule.forRoot([
+      {
+        ttl:60000,
+        limit:20
+      }
+    ]),
+    MongooseModule.forRootAsync({
+      imports:[CoreModule],
+      inject:[AppConfigService],
+      useFactory:(config:AppConfigService)=>({
+        uri:    config.databaseUrl
+      })
+    }),
+    JwtModule,
     VentaModule,
     EmpresaModule,
     SucursalModule,
@@ -56,6 +73,15 @@ import { AutenticacionModule } from './autenticacion/autenticacion.module';
     AutenticacionModule
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide:APP_GUARD,
+      useClass:TokenGuard,
+    },
+    {
+      provide:APP_GUARD,
+      useClass:ThrottlerGuard
+    }
+  ],
 })
 export class AppModule {}

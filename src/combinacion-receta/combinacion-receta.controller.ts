@@ -13,7 +13,7 @@ export class CombinacionRecetaController {
   }
 
   @Get()
-  findAll() {
+  findAll() {  
     return this.combinacionRecetaService.findAll();
   }
 

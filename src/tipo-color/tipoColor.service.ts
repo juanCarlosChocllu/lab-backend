@@ -33,29 +33,24 @@ export class TipoColorService {
    
     
     if (!tipoColor) {
-        console.log(`[CREAR] Creando nuevo tipoColor: "${nombre}"`);
       return this.tipoColor.create({
         nombre: nombre,
       });
     }
-    console.log(`[EXISTE] Ya existe tipoColor: "${nombre}"`);
+    
     return tipoColor;
   }
 
   async registarTipoColorLente(nombre: string, abreviaturaNovar: string) {
-    console.log(nombre);
-
     const tipoColor = await this.tipoColor.findOne({ nombre: nombre });
 
     if (!tipoColor) {
-      //return new Types.ObjectId('6876a1771e3f443a5781c58f');
+
       return this.tipoColor.create({
         nombre: nombre,
         abreviaturaNovar: abreviaturaNovar,
       });
     }
-    console.log('gi');
-
     return tipoColor;
   }
 

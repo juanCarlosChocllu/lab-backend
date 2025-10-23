@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import * as exceljs from 'exceljs';
+import * as Exceljs from 'exceljs';
 import * as path from 'path';
 import { dataExcelI, VentaApiMia } from '../interface/dataExcel';
 import { log } from 'console';
@@ -26,6 +26,8 @@ import { CombinacionRecetaService } from 'src/combinacion-receta/combinacion-rec
 import { LenteService } from 'src/lente/lente.service';
 import { LenteVentaI } from 'src/lente/interface/lenteInterface';
 import { AppConfigService } from 'src/core/config/AppConfigService';
+import { CombinacionTiempoService } from 'src/combinacion-tiempo/combinacion-tiempo.service';
+import { TiempoProduccionService } from 'src/tiempo-produccion/tiempo-produccion.service';
 
 @Injectable()
 export class ProviderService {
@@ -44,17 +46,19 @@ export class ProviderService {
     private readonly tipoColorService: TipoColorService,
     private readonly combinacionRecetaService: CombinacionRecetaService,
     private readonly lenteService: LenteService,
-        private readonly appConfigService: AppConfigService,
+    private readonly appConfigService: AppConfigService,
+    private readonly combinacionTiempoService: CombinacionTiempoService,
+    private readonly tiempoProduccionService: TiempoProduccionService,
   ) {}
 
   async lectura(archivo: string) {
     let ruta: string = path.join(__dirname, `../../../reports/${archivo}`);
-    let workbook = new exceljs.stream.xlsx.WorkbookReader(ruta, {
+    let workbook = new Exceljs.stream.xlsx.WorkbookReader(ruta, {
       entries: 'emit',
     });
     for await (const hojas of workbook) {
-      this.regitrarData(hojas);
-      break
+      await this.regitrarData(hojas);
+      break;
     }
     return { status: HttpStatus.OK };
   }
@@ -70,7 +74,7 @@ export class ProviderService {
     return null;
   }
 
-  private async regitrarData(hojas: exceljs.stream.xlsx.WorksheetReader) {
+  private async regitrarData(hojas: Exceljs.stream.xlsx.WorksheetReader) {
     let contador = 0;
     for await (const filas of hojas) {
       contador++;
@@ -78,11 +82,10 @@ export class ProviderService {
 
       if (contador === 1) continue;
       const pedido = String(filas.getCell(1).value);
-      console.log(pedido);
 
       const sucursal = String(filas.getCell(15).value);
       await this.guardarSucursal(sucursal);
-      const venta = await this.ventaService.verificarVentaExiste(pedido)
+      const venta = await this.ventaService.verificarVentaExiste(pedido);
       if (venta) {
         const seguimiento: CrearSeguimiento = {
           tracking: String(filas.getCell(8).value),
@@ -95,11 +98,11 @@ export class ProviderService {
       } else {
         const sucursalEncontrada =
           await this.sucursalService.verificarSucursal(sucursal);
-           
+
         if (sucursalEncontrada) {
-           const ventaMia = await this.apiVentaMia(pedido)
-           const combinacion = await this.registrarAtribustosLente(ventaMia);
-         const ventaData: VentaI = {
+          const ventaMia = await this.apiVentaMia(pedido);
+          const combinacion = await this.registrarAtribustosLente(ventaMia);
+          const ventaData: VentaI = {
             codigo: String(filas.getCell(16).value),
             descripcion: String(filas.getCell(17).value),
             pedido: pedido,
@@ -122,7 +125,6 @@ export class ProviderService {
           await this.seguimiento.crearSeguimiento(seguimiento);
         }
       }
-      
     }
   }
   private guardarSucursal(sucursal: string) {
@@ -150,7 +152,6 @@ export class ProviderService {
 
   private async registrarAtribustosLente(data: VentaApiMia) {
     console.log(data);
-    
 
     try {
       if (data) {
@@ -218,5 +219,97 @@ export class ProviderService {
     }
   }
 
+  async tiempoEntrega(archivo: string) {
+    let ruta: string = path.join(__dirname, `../../../reports/${archivo}`);
+    const workbook = new Exceljs.Workbook();
+    await workbook.xlsx.readFile(ruta);
+    for await (const hojas of workbook.worksheets) {
+      await this.registrarTiemposDeEntrega(hojas);
+      break;
+    }
+  }
 
+  async registrarTiemposDeEntrega(hoja: Exceljs.Worksheet) {
+    try {
+      const filas: Exceljs.Row[] = [];
+
+      // Primero, extraemos todas las filas (saltamos la cabecera)
+      hoja.eachRow((fila, index) => {
+        if (index !== 1) {
+          filas.push(fila);
+        }
+      });
+
+      // Ahora procesamos fila por fila con control de asincronía
+      for (const fila of filas) {
+        const sucursal = fila.getCell(1).value;
+        const proceso = fila.getCell(2).value;
+        const tipoLente = fila.getCell(3).value;
+        const tipoColor = fila.getCell(4).value;
+        const tratamiento = fila.getCell(5).value;
+        const recepcion = fila.getCell(6).value;
+        const almacen = fila.getCell(7).value;
+        const calculo = fila.getCell(8).value;
+        const digital = fila.getCell(9).value;
+        const antireflejo = fila.getCell(10).value;
+        const esperaMontura = fila.getCell(11).value;
+        const bisel = fila.getCell(12).value;
+        const tinte = fila.getCell(13).value;
+        const despacho = fila.getCell(14).value;
+        const controlCalidad = fila.getCell(15).value;
+        const tiempoEntregaLogistica = fila.getCell(16).value;
+        const tiempoTransporte = fila.getCell(17).value;
+        const tipo = fila.getCell(18).value;
+
+      
+        const sucur = await this.sucursalService.verificarSucursal(
+          String(sucursal).toUpperCase(),
+        );
+
+        if (sucur) {
+          const [tipoColorLente, tratamientoLente] = await Promise.all([
+            this.tipoColorService.guardarTipoColor(
+              String(tipoColor).toUpperCase().trim(),
+            ),
+            this.tratamientoService.guardarTratamiento(
+              String(tratamiento).toUpperCase().trim(),
+            ),
+          ]);
+
+          const combinacion =
+            await this.combinacionTiempoService.guardarCombinacion({
+              tipoLente: String(tipoLente).trim(),
+              tipoColor: tipoColorLente._id,
+              tratamiento: tratamientoLente._id,
+            });
+
+          await this.tiempoProduccionService.create({
+            almacen: Number(almacen),
+            antireflejo: Number(antireflejo),
+            bisel: Number(bisel),
+            calculo: Number(calculo),
+            combinacionTiempo: combinacion._id,
+            controlCalidad: Number(controlCalidad),
+            despacho: Number(despacho),
+            digital: Number(digital),
+            estadoAntireflejo:
+              Number(antireflejo) > 0 ? 'CON ANTIREFLEJO' : 'SIN ANTIREFLEJO',
+            estadoLente: String(proceso),
+            estadoProeceso: Number(bisel) > 0 ? 'CON BISELADO' : 'SIN BISELADO',
+            sucursal: sucur._id,
+            recepcion: Number(recepcion),
+            tiempoLogisticaEntrega: Number(tiempoEntregaLogistica),
+            tiempoTransporte: Number(tiempoTransporte),
+            tinte: Number(tinte),
+            tipo: String(tipo).trim(),
+            esperaMontura:Number(esperaMontura)
+          
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error al registrar tiempos de entrega:', error);
+      throw error;
+    }
+  }
 }

@@ -28,3 +28,4 @@ export class Seguimiento {
 }
 
 export const seguimientoSchema = SchemaFactory.createForClass(Seguimiento)
+seguimientoSchema.index({venta:1})

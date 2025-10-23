@@ -12,6 +12,7 @@ export class CombinacionTiempoService {
     @InjectModel(CombinacionTiempo.name)
     private readonly combinacionTiempo: Model<CombinacionTiempo>,
   ) {}
+
   async create(createCombinacionTiempoDto: CreateCombinacionTiempoDto) {
     createCombinacionTiempoDto.tipoColor = new Types.ObjectId(
       createCombinacionTiempoDto.tipoColor,
@@ -29,6 +30,26 @@ export class CombinacionTiempoService {
       return { status: HttpStatus.CREATED };
     }
     throw new ConflictException();
+  }
+
+  async guardarCombinacion(
+    createCombinacionTiempoDto: CreateCombinacionTiempoDto,
+  ) {
+    createCombinacionTiempoDto.tipoColor = new Types.ObjectId(
+      createCombinacionTiempoDto.tipoColor,
+    );
+    createCombinacionTiempoDto.tratamiento = new Types.ObjectId(
+      createCombinacionTiempoDto.tratamiento,
+    );
+    createCombinacionTiempoDto.tipoLente = createCombinacionTiempoDto.tipoLente;
+
+    const data = await this.combinacionTiempo.findOne(
+      createCombinacionTiempoDto,
+    );
+    if (!data) {
+      return this.combinacionTiempo.create(createCombinacionTiempoDto);
+    }
+    return data;
   }
 
   async listar() {
@@ -60,7 +81,8 @@ export class CombinacionTiempoService {
     return resultado;
   }
 
-  async buscarCombiancionTiempo(data: CombinacionTiempoI) {
+  async buscarCombiancionTiempo(data: CombinacionTiempoI) { 
+     
     return await this.combinacionTiempo.findOne(data);
   }
 

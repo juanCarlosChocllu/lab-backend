@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import { flagE } from 'src/core/enum/FlagEnum';
 import { BaseSchema } from 'src/core/schema/BaseSchema';
 
 @Schema({ collection: 'Venta' })
@@ -39,4 +38,4 @@ export class Venta extends BaseSchema {
 }
 
 export const ventaSchema = SchemaFactory.createForClass(Venta);
-ventaSchema.index({ sucursal: 1, fechaVenta:1 });
+ventaSchema.index({ sucursal: 1, fechaVenta:1 ,estado:1});

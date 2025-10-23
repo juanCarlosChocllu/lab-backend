@@ -1,4 +1,4 @@
-import { ForbiddenException, HttpStatus, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRangoDto } from './dto/createRango.dto';
 import { UpdateRangoDto } from './dto/update-rango.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -8,12 +8,13 @@ import { flagE } from 'src/core/enum/FlagEnum';
 import { DataRangoDto } from './dto/dataRango.dto';
 import { CrearRangoMia } from './dto/crearRangoMia.dto';
 import { AppConfigService } from 'src/core/config/AppConfigService';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class RangoService {
   constructor(
     @InjectModel(Rango.name) private readonly rango: Model<Rango>,
-    private readonly appConfigService:AppConfigService
+    private readonly appConfigService: AppConfigService,
   ) {}
   async create(createRangoDto: CreateRangoDto) {
     for (const data of createRangoDto.data) {
@@ -26,23 +27,26 @@ export class RangoService {
   }
 
   async registrarRangoMia(crearRangoMia: CrearRangoMia) {
-    if(crearRangoMia.key === this.appConfigService.key){
+    if (crearRangoMia.key === this.appConfigService.key) {
       const rango = await this.rango.findOne({ nombre: crearRangoMia.nombre });
-    if (!rango) {
-      await this.rango.create(crearRangoMia);
-    }
-    await this.rango.updateOne(
-      { nombre: crearRangoMia.nombre },
-      {
-        abreviaturaNovar: crearRangoMia.abreviaturaNovar,
-        tipo: crearRangoMia.tipo,
-      },  
-    );
-    return { status: HttpStatus.OK}
+      if (!rango) {
+        await this.rango.create(crearRangoMia);
+      }
+      await this.rango.updateOne(
+        { nombre: crearRangoMia.nombre },
+        {
+          abreviaturaNovar: crearRangoMia.abreviaturaNovar,
+          tipo: crearRangoMia.tipo,
+        },
+      );
+      return { status: HttpStatus.OK };
     }
     throw new ForbiddenException();
   }
 
+  async listarRangos() {
+    return this.rango.find({ flag: flagE.nuevo });
+  }
   async listarRangoPorAbreviatura(abreviatura: string) {
     const rango = await this.rango.findOne({
       abreviaturaNovar: abreviatura.toUpperCase(),
@@ -72,12 +76,15 @@ export class RangoService {
       flag: flagE.nuevo,
     });
   }
+  async  asignarTipo(id:Types.ObjectId, tipo:string){
+    const rango= await this.rango.findOne({
+      _id: new Types.ObjectId(id),
+      flag: flagE.nuevo,
+    });
+    if(!rango){
+      throw new NotFoundException()
+    }
+    return this.rango.findOneAndUpdate(new Types.ObjectId(id), {$set:{tipo:tipo}})
 
-  update(id: number, updateRangoDto: UpdateRangoDto) {
-    return `This action updates a #${id} rango`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} rango`;
-  }
+}
 }

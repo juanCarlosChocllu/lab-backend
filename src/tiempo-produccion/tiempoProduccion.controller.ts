@@ -1,14 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 
 import { CreateTiempoProduccionDto } from './dto/createtiempoProduccion.dto';
 import { UpdateTiempoProduccionDto } from './dto/update-tiempo-produccion.dto';
-import { Types } from 'mongoose';
 import { TiempoProduccionService } from './tiempo-produccion.service';
 import { PaginadorDto } from 'src/core/dto/paginadorDto';
 
 @Controller('tiempo/produccion')
 export class TiempoProduccionController {
-  constructor(private readonly tiempoProduccionService: TiempoProduccionService) {}
+  constructor(
+    private readonly tiempoProduccionService: TiempoProduccionService,
+  ) {}
 
   @Post()
   create(@Body() createTiempoProduccionDto: CreateTiempoProduccionDto) {
@@ -16,8 +26,7 @@ export class TiempoProduccionController {
   }
 
   @Get()
-  findAll(@Query() paginadorDto : PaginadorDto ) {
-    
+  findAll(@Query() paginadorDto: PaginadorDto) {
     return this.tiempoProduccionService.findAll(paginadorDto);
   }
 
@@ -27,9 +36,10 @@ export class TiempoProduccionController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTiempoProduccionDto: UpdateTiempoProduccionDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateTiempoProduccionDto: UpdateTiempoProduccionDto,
+  ) {
     return this.tiempoProduccionService.update(+id, updateTiempoProduccionDto);
   }
-
-
 }

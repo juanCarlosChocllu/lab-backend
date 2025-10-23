@@ -56,8 +56,6 @@ export class VentaService {
     return venta;
   }
 
-
-
   async tiemposEntrega(buscadorDto: BuscadorDto) {
     const ventaData = [];
     const filter = {
@@ -65,14 +63,17 @@ export class VentaService {
       sucursal: {
         $in: buscadorDto.sucursal.map((item) => new Types.ObjectId(item)),
       },
-      fechaVenta:{
-       $gte :new Date( new Date(buscadorDto.fechaInicio).setUTCHours(0,0,0,0)),
-       $lte :new Date( new Date(buscadorDto.fechaFin).setUTCHours(23,59,59,999)),
-      }
-      
+      fechaVenta: {
+        $gte: new Date(
+          new Date(buscadorDto.fechaInicio).setUTCHours(0, 0, 0, 0),
+        ),
+        $lte: new Date(
+          new Date(buscadorDto.fechaFin).setUTCHours(23, 59, 59, 999),
+        ),
+      },
+      estado:{$ne:'Anulado'}
     };
-    console.log(filter);
-    
+
     const pipeline: PipelineStage[] = [
       { $match: filter },
 
@@ -89,10 +90,9 @@ export class VentaService {
           id_venta: 1,
         },
       },
-    
     ];
 
-    const ventas= await this.venta.aggregate(pipeline)
+    const ventas = await this.venta.aggregate(pipeline);
 
     for (const venta of ventas as VentasAggregateI[]) {
       const seguimiento = await this.seguimientoService.seguimientoVenta(
@@ -111,8 +111,9 @@ export class VentaService {
       const tiempoPrometido = await this.obtenerTiempoPrometido(
         venta.combinacionReceta,
         venta.sucursal,
+        seguimiento,
       );
-
+     
       const data = {
         estado: venta.estado,
         fechaVenta: venta.fechaVenta,
@@ -207,6 +208,7 @@ export class VentaService {
   private async obtenerTiempoPrometido(
     combinacion: Types.ObjectId,
     sucursal: Types.ObjectId,
+    seguimientos: ListarSeguimientoI[],
   ) {
     const comb = await this.combinacionRecetaService.buscarReceta(combinacion);
 
@@ -220,15 +222,20 @@ export class VentaService {
         tratamiento: comb.tratamiento,
       };
 
+      
+      
+      
       const [tiemposCombinacion, rango] = await Promise.all([
         this.combinacionTiempoService.buscarCombiancionTiempo(data),
         this.rangoService.findOne(comb.rango),
       ]);
+    
       if (tiemposCombinacion) {
         const resultado: string = await this.tiempoPrometido(
           tiemposCombinacion._id,
           rango.tipo,
           sucursal,
+          seguimientos,
         );
 
         return resultado;
@@ -240,13 +247,34 @@ export class VentaService {
     combinacion: Types.ObjectId,
     tipo: RangoTipoE,
     sucursal: Types.ObjectId,
+    seguimientos: ListarSeguimientoI[],
   ) {
+    let antireflejo = 'SIN ANTIREFLEJO';
+    let estadoProeceso = 'SIN BISELADO';
+    let estadoLente = "TERMINADO"
+
+    for (const data of seguimientos) {
+        if(data.tracking == "Biselado"){
+          estadoProeceso = "CON BISELADO"
+        }
+        if(data.tracking == "Antireflejo / Blue"){
+          antireflejo = "CON ANTIREFLEJO"
+        }
+    }
+    if(tipo == RangoTipoE.laboratorio ){
+      estadoLente ="SEMI TERMINADO"
+    }
+
+
     let resultado: number = 0;
     const tiempo =
       await this.tiempoProduccionService.tiempoProduccionPorCombinacionTiempo(
         combinacion,
         tipo,
         sucursal,
+        antireflejo,
+       estadoProeceso,
+       estadoLente
       );
 
     if (tiempo) {
@@ -261,7 +289,8 @@ export class VentaService {
         tiempo.despacho +
         tiempo.controlCalidad +
         tiempo.tiempoTransporte +
-        tiempo.tiempoLogisticaEntrega;
+        tiempo.tiempoLogisticaEntrega + 
+        tiempo.esperaMontura;
     }
     const { dias, horasRestantes, minutosRestantes, totalHoras } =
       convertirHorasADiasYMinutos(resultado);

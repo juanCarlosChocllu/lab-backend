@@ -10,6 +10,7 @@ import * as argon2 from 'argon2';
 import { Types } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { AppConfigService } from 'src/core/config/AppConfigService';
+import { log } from 'console';
 
 @Injectable()
 export class AutenticacionService {
@@ -48,6 +49,8 @@ export class AutenticacionService {
         expiresIn: '4h',
       },
     );
+   
+    
     return token;
   }
 }

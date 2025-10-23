@@ -1,4 +1,10 @@
-import { Controller, Get, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ProviderService } from '../services/provider.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -6,12 +12,17 @@ import { multerConfig } from '../utils/multerConfig';
 
 @Controller('excel')
 export class ExcelController {
-    constructor(private readonly providerService:ProviderService){}
+  constructor(private readonly providerService: ProviderService) {}
 
-   
-    @Post()
-    @UseInterceptors(FileInterceptor('file',multerConfig))
-    cargarArchivoExcel(@UploadedFile() file: Express.Multer.File){    
-        return this.providerService.lectura(file.filename)
-    }
+  @Post()
+  @UseInterceptors(FileInterceptor('file', multerConfig))
+  cargarArchivoExcel(@UploadedFile() file: Express.Multer.File) {
+    return this.providerService.lectura(file.filename);
+  }
+
+   @Post("tiempo/entrega")
+  @UseInterceptors(FileInterceptor('file', multerConfig))
+  tiempoEntrega(@UploadedFile() file: Express.Multer.File) {
+    return this.providerService.tiempoEntrega(file.filename);
+  }
 }

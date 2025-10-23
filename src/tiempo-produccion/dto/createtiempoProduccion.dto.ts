@@ -62,9 +62,16 @@ export class CreateTiempoProduccionDto {
   @Min(0, { message: 'El valor de calculo no puede ser menor que cero' })
   tiempoTransporte:number
 
+   @IsNotEmpty()
+  @IsNumber()
+  @Min(0, { message: 'El valor de calculo no puede ser menor que cero' })
+  esperaMontura:number
+
   @IsNotEmpty()
   @IsEnum(estadoAntireflejoE)
   estadoAntireflejo: string;
+
+  
   @IsNotEmpty()
   @IsEnum(RangoTipoE)
   tipo: string;

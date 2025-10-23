@@ -40,6 +40,17 @@ async verificarTratamiento(nombre:string){
     return tratamiento;
   }
 
+    async guardarTratamiento(nombre: string) {
+    const tratamiento = await this.tratamiento.findOne({ nombre: nombre });
+    if (!tratamiento) {
+      return await this.tratamiento.create({
+        nombre: nombre
+      });
+    }
+    return tratamiento;
+  }
+
+
 
  async listar() {
     const tratamiento = await this.tratamiento.find({ flag: flagE.nuevo });

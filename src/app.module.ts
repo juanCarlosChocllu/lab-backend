@@ -30,6 +30,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LogsModule } from './logs/logs.module';
 import { ProviderNovarModule } from './provider-novar/provider-novar.module';
 import { GestorSocketModule } from './gestor_socket/gestor_socket.module';
+import { TokenGuard } from './core/guards/token/token.guard';
 
 @Module({
   imports: [
@@ -77,10 +78,10 @@ import { GestorSocketModule } from './gestor_socket/gestor_socket.module';
   ],
   controllers: [],
   providers: [
-   /* {
+    {
       provide: APP_GUARD,
       useClass: TokenGuard,
-    },*/
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

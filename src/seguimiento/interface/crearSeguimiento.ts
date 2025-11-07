@@ -8,6 +8,10 @@ export interface CrearSeguimiento {
   fechaTracking: Date;
 
   reproceso: string;
+  idTracking: number;
 
+  idTrackingActividad: number;
   venta: Types.ObjectId;
+
+  nombreOperador: string;
 }

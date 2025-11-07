@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 export interface VentasAggregateI {
      _id?:Types.ObjectId
   estado: string;
-  pedido: string;
+  pedido: number;
   codigo: string;
   descripcion: string;
   sucursal: Types.ObjectId;

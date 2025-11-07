@@ -1,21 +1,23 @@
-import { Types } from "mongoose"
+import { Types } from 'mongoose';
 
-export interface VentaI{
-        _id?:Types.ObjectId
-        pedido:string
+export interface VentaI {
+  _id?: Types.ObjectId;
+  pedido: number;
 
-        estado:string
- 
-        fechaVenta:Date
+  estado: string;
 
-        sucursal:Types.ObjectId
-        codigo:string
-        descripcion:string
+  fechaVenta: Date;
 
-        id_venta?:string
+  sucursal: Types.ObjectId;
+  codigo: string;
+  descripcion: string;
 
-        combinacionReceta?:Types.ObjectId
-        
-        descripcionCombinacion?:string
-    
+  id_venta?: string;
+
+  combinacionReceta?: Types.ObjectId;
+
+  descripcionCombinacion?: string;
+  idTracking: Number;
+
+  tieneReceta:boolean
 }

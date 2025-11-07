@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   Type,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AutenticacionDto } from './dto/Autenticacion.dto';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
@@ -25,14 +26,14 @@ export class AutenticacionService {
         autenticacionDto.username,
       );
       if (!usuario) {
-        throw new ForbiddenException();
+        throw new UnauthorizedException();
       }
       const match = await argon2.verify(
         usuario.password,
         autenticacionDto.password,
       );
       if (!match) {
-        throw new ForbiddenException();
+        throw new UnauthorizedException();
       }
       const token = this.generarToken(usuario._id);
       return { token: token };

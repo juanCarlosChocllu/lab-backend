@@ -15,8 +15,11 @@ export class Seguimiento {
 
     @Prop()
     reproceso:string
-    
 
+    @Prop()
+    idTracking:number
+    @Prop()
+    idTrackingActividad:number
     @Prop({type:Types.ObjectId, ref:'Venta'})
     venta:Types.ObjectId
 
@@ -25,6 +28,9 @@ export class Seguimiento {
 
     @Prop({type:Date, default:Date.now})
     fecha:Date
+
+        @Prop()
+    nombreOperador:string
 }
 
 export const seguimientoSchema = SchemaFactory.createForClass(Seguimiento)

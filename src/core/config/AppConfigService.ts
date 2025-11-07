@@ -24,5 +24,20 @@ export class AppConfigService {
   get jwtSecret(): string {
     return this.configService.get<string>('JWT_SECRET');
   }
-  
+
+  get sqlUser(): string {
+    return this.configService.get<string>('USER_SQL');
+  }
+
+  get sqlServer(): string {
+    return this.configService.get<string>('SERVER_SQL');
+  }
+
+  get passwordSql(): string {
+    return this.configService.get<string>('PASSWORD_SQL');
+  }
+
+  get databaseSql(): string {
+    return this.configService.get<string>('DATABASE_SQL');
+  }
 }

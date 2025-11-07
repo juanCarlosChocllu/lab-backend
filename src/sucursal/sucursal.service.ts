@@ -13,19 +13,33 @@ export class SucursalService {
   ) {}
   async crearSucursal(nombre: string) {
     if (nombre != 'null') {
-      const sucursal = await this.sucursal.findOne({ nombre: nombre.toUpperCase() });
+      const sucursal = await this.sucursal.findOne({
+        nombre: nombre.toUpperCase(),
+      });
       if (!sucursal) {
         return this.sucursal.create({ nombre: nombre.toUpperCase() });
       }
     }
   }
+  async guradarSucursal(nombre: string) {
+    const sucursal = await this.sucursal.findOne({
+      nombre: nombre.toUpperCase(),
+    });
+    if (!sucursal) {
+      return this.sucursal.create({ nombre: nombre.toUpperCase() });
+    }
+    return sucursal;
+  }
 
   verificarSucursal(nombre: string) {
-    return this.sucursal.exists({ nombre: nombre.toUpperCase(), flag: flagE.nuevo });
+    return this.sucursal.exists({
+      nombre: nombre.toUpperCase(),
+      flag: flagE.nuevo,
+    });
   }
 
   async listar() {
-    const resultado = await this.sucursal.find()
+    const resultado = await this.sucursal.find();
     return resultado;
   }
 

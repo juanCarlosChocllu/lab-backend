@@ -9,6 +9,7 @@ import { PaginadorDto } from 'src/core/dto/paginadorDto';
 import { skip } from 'src/core/util/skip';
 import { flagE } from 'src/core/enum/FlagEnum';
 import { paginas } from 'src/core/util/paginas';
+import { BuscadorTiempoProduccionDto } from './dto/BuscadorTiempoProduccion';
 
 @Injectable()
 export class TiempoProduccionService {
@@ -37,13 +38,72 @@ export class TiempoProduccionService {
     return { status: HttpStatus.CREATED };
   }
 
-  async findAll(paginadorDto: PaginadorDto) {
+  async findAll(BuscadorTiempoProduccionDto: BuscadorTiempoProduccionDto) {
+    const filter = {}
+    if(BuscadorTiempoProduccionDto.recepcion){
+      filter['recepcion'] = BuscadorTiempoProduccionDto.recepcion
+    }
+    if(BuscadorTiempoProduccionDto.almacen){
+      filter['almacen'] = BuscadorTiempoProduccionDto.almacen
+    }
+     if(BuscadorTiempoProduccionDto.calculo){
+      filter['calculo'] = BuscadorTiempoProduccionDto.calculo
+    }
+
+    if(BuscadorTiempoProduccionDto.digital){
+      filter['digital'] = BuscadorTiempoProduccionDto.digital
+    }
+     if(BuscadorTiempoProduccionDto.antireflejo){
+      filter['antireflejo'] = BuscadorTiempoProduccionDto.antireflejo
+    }
+     if(BuscadorTiempoProduccionDto.esperaMontura){
+      filter['esperaMontura'] = BuscadorTiempoProduccionDto.esperaMontura
+    }
+     if(BuscadorTiempoProduccionDto.bisel){
+      filter['bisel'] = BuscadorTiempoProduccionDto.bisel
+    }
+     if(BuscadorTiempoProduccionDto.tinte){
+      filter['tinte'] = BuscadorTiempoProduccionDto.tinte
+    }
+    if(BuscadorTiempoProduccionDto.controlCalidad){
+      filter['controlCalidad'] = BuscadorTiempoProduccionDto.controlCalidad
+    }
+    if(BuscadorTiempoProduccionDto.despacho){
+      filter['despacho'] = BuscadorTiempoProduccionDto.despacho
+    }
+
+    if(BuscadorTiempoProduccionDto.tiempoLogisticaEntrega){
+      filter['tiempoLogisticaEntrega'] = BuscadorTiempoProduccionDto.tiempoLogisticaEntrega
+    }
+    if(BuscadorTiempoProduccionDto.tiempoTransporte){
+      filter['tiempoTransporte'] = BuscadorTiempoProduccionDto.tiempoTransporte
+    }
+     if(BuscadorTiempoProduccionDto.estadoAntireflejo){
+      filter['estadoAntireflejo'] =new RegExp( BuscadorTiempoProduccionDto.estadoAntireflejo, 'i')
+    }
+     if(BuscadorTiempoProduccionDto.estadoLente){
+      filter['estadoLente'] =new RegExp( BuscadorTiempoProduccionDto.estadoLente, 'i')
+    }
+    if(BuscadorTiempoProduccionDto.estadoProeceso){
+      filter['estadoProeceso'] =new RegExp( BuscadorTiempoProduccionDto.estadoProeceso, 'i')
+    }
+     if(BuscadorTiempoProduccionDto.tipo){
+      filter['tipo'] =new RegExp( BuscadorTiempoProduccionDto.tipo, 'i')
+    }
+  
+    
     const pipeline: PipelineStage[] = [
       {
-        $skip: skip(paginadorDto.pagina, paginadorDto.limite),
+        $match : filter
       },
       {
-        $limit: paginadorDto.limite,
+        $skip: skip(
+          BuscadorTiempoProduccionDto.pagina,
+          BuscadorTiempoProduccionDto.limite,
+        ),
+      },
+      {
+        $limit: BuscadorTiempoProduccionDto.limite,
       },
       {
         $lookup: {
@@ -59,7 +119,18 @@ export class TiempoProduccionService {
           preserveNullAndEmptyArrays: false,
         },
       },
-
+      ...(BuscadorTiempoProduccionDto.tipoLente
+        ? [
+            {
+              $match: {
+                'combinacionTiempo.tipoLente': new RegExp(
+                  BuscadorTiempoProduccionDto.tipoLente,
+                  'i',
+                ),
+              },
+            },
+          ]
+        : []),
       {
         $lookup: {
           from: 'TipoColor',
@@ -71,6 +142,18 @@ export class TiempoProduccionService {
       {
         $unwind: { path: '$tipoColor', preserveNullAndEmptyArrays: false },
       },
+      ...(BuscadorTiempoProduccionDto.tipoColor
+        ? [
+            {
+              $match: {
+                'tipoColor.nombre': new RegExp(
+                  BuscadorTiempoProduccionDto.tipoColor,
+                  'i',
+                ),
+              },
+            },
+          ]
+        : []),
       {
         $lookup: {
           from: 'Tratamiento',
@@ -82,7 +165,18 @@ export class TiempoProduccionService {
       {
         $unwind: { path: '$tratamiento', preserveNullAndEmptyArrays: false },
       },
-
+      ...(BuscadorTiempoProduccionDto.tratamiento
+        ? [
+            {
+              $match: {
+                'tratamiento.nombre': new RegExp(
+                  BuscadorTiempoProduccionDto.tratamiento,
+                  'i',
+                ),
+              },
+            },
+          ]
+        : []),
       {
         $lookup: {
           from: 'Sucursal',
@@ -94,6 +188,18 @@ export class TiempoProduccionService {
       {
         $unwind: { path: '$sucursal', preserveNullAndEmptyArrays: false },
       },
+      ...(BuscadorTiempoProduccionDto.sucursal
+        ? [
+            {
+              $match: {
+                'sucursal.nombre': new RegExp(
+                  BuscadorTiempoProduccionDto.sucursal,
+                  'i',
+                ),
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           recepcion: 1,
@@ -123,7 +229,10 @@ export class TiempoProduccionService {
       this.tiempoProduccion.aggregate(pipeline),
       this.tiempoProduccion.countDocuments({ flag: flagE.nuevo }),
     ]);
-    const cantidadPaginas = paginas(countDocuments, paginadorDto.limite);
+    const cantidadPaginas = paginas(
+      countDocuments,
+      BuscadorTiempoProduccionDto.limite,
+    );
 
     return { data: resultado, paginas: cantidadPaginas };
   }
@@ -150,7 +259,7 @@ export class TiempoProduccionService {
     antireflejo: string,
     estadoProeceso: string,
     estadoLente: string,
-  ) {
+  ) {    
     const tiempo = await this.tiempoProduccion.findOne({
       combinacionTiempo: new Types.ObjectId(combinacionTiempo),
       tipo: tipo,
@@ -161,4 +270,20 @@ export class TiempoProduccionService {
     });
     return tiempo;
   }
+
+
+ /* async tiempoProduccionPorCombinacionTiempo(
+    combinacionTiempo: Types.ObjectId,
+    tipo: RangoTipoE,
+    sucursal: Types.ObjectId,
+    estadoLente:string
+  ) {
+    const tiempo = await this.tiempoProduccion.findOne({
+      combinacionTiempo: new Types.ObjectId(combinacionTiempo),
+      tipo: tipo,
+      sucursal: new Types.ObjectId(sucursal),
+      estadoLente:estadoLente
+    });
+    return tiempo;
+  }*/
 }

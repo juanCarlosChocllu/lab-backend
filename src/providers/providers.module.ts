@@ -18,17 +18,36 @@ import { LenteModule } from 'src/lente/lente.module';
 import { CoreModule } from 'src/core/core.module';
 import { CombinacionTiempoModule } from 'src/combinacion-tiempo/combinacion-tiempo.module';
 import { TiempoProduccionModule } from 'src/tiempo-produccion/tiempo-produccion.module';
-
+import { ProviderNovarModule } from 'src/provider-novar/provider-novar.module';
+import { LogsModule } from 'src/logs/logs.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-    imports:[
-      HttpModule,
-      CombinacionRecetaModule,
-      CoreModule,
-      CombinacionTiempoModule,
-      TiempoProduccionModule,
-    VentaModule, SeguimientoModule, LenteModule,ProductoModule, SucursalModule, TratamientoModule, TipoLenteModule, ColorLenteModule, RangoModule, MaterialModule, MarcaModule, TipoColorModule],
+  imports: [
+    ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
+    HttpModule,
+    ProviderNovarModule,
+    CombinacionRecetaModule,
+    CoreModule,
+    CombinacionTiempoModule,
+    TiempoProduccionModule,
+    LogsModule,
+    VentaModule,
+    SeguimientoModule,
+    LenteModule,
+    ProductoModule,
+    SucursalModule,
+    TratamientoModule,
+    TipoLenteModule,
+    ColorLenteModule,
+    RangoModule,
+    MaterialModule,
+    MarcaModule,
+    TipoColorModule,
+  ],
   providers: [ProviderService],
-  controllers: [ExcelController]
+  controllers: [ExcelController],
 })
 export class ProvidersModule {}

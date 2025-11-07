@@ -39,8 +39,8 @@ export class UsuariosService {
 
 
 
-  buscarUsuario(username:string){
-    const usuario = this.usuario.findOne({username:username}).select('+password')
+  async buscarUsuario(username:string){
+    const usuario = await this.usuario.findOne({username:username}).select('+password')    
     return usuario
   }
 
@@ -49,13 +49,7 @@ export class UsuariosService {
     return usuarios;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} usuario`;
-  }
 
-  update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    return `This action updates a #${id} usuario`;
-  }
 
   async softDelete(id: Types.ObjectId) {
       const user = await this.usuario.findOne({_id:new Types.ObjectId(id)})

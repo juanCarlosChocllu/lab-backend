@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import * as Exceljs from 'exceljs';
 import * as path from 'path';
 import { dataExcelI, VentaApiMia } from '../interface/dataExcel';
@@ -29,9 +29,17 @@ import { AppConfigService } from 'src/core/config/AppConfigService';
 import { CombinacionTiempoService } from 'src/combinacion-tiempo/combinacion-tiempo.service';
 import { TiempoProduccionService } from 'src/tiempo-produccion/tiempo-produccion.service';
 
+import { ProviderDto } from '../dto/providerDto';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { ProviderNovarService } from 'src/provider-novar/provider-novar.service';
+import { LogsService } from 'src/logs/logs.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
 @Injectable()
 export class ProviderService {
+  private readonly logger = new Logger(ProviderService.name);
   constructor(
+    private eventEmitter: EventEmitter2,
     private readonly ventaService: VentaService,
     private readonly seguimiento: SeguimientoService,
     private readonly productoService: ProductoService,
@@ -49,6 +57,8 @@ export class ProviderService {
     private readonly appConfigService: AppConfigService,
     private readonly combinacionTiempoService: CombinacionTiempoService,
     private readonly tiempoProduccionService: TiempoProduccionService,
+    private readonly ProviderNovarService: ProviderNovarService,
+    private readonly logsService: LogsService,
   ) {}
 
   async lectura(archivo: string) {
@@ -93,6 +103,9 @@ export class ProviderService {
           fechaTracking: this.formatoFecha(Number(filas.getCell(10).value)),
           sector: String(filas.getCell(9).value),
           venta: venta._id,
+          idTracking: 0,
+          idTrackingActividad: 0,
+          nombreOperador: 'sin opereador',
         };
         await this.seguimiento.crearSeguimiento(seguimiento);
       } else {
@@ -103,15 +116,17 @@ export class ProviderService {
           const ventaMia = await this.apiVentaMia(pedido);
           const combinacion = await this.registrarAtribustosLente(ventaMia);
           const ventaData: VentaI = {
+            idTracking: 0,
             codigo: String(filas.getCell(16).value),
             descripcion: String(filas.getCell(17).value),
-            pedido: pedido,
+            pedido: Number(pedido),
             fechaVenta: this.formatoFecha(Number(filas.getCell(2).value)),
             estado: String(filas.getCell(7).value),
             sucursal: sucursalEncontrada._id,
             ...(ventaMia && { descripcionCombinacion: ventaMia.descripcion }),
             ...(combinacion && { combinacionReceta: combinacion._id }),
             ...(ventaMia && { id_venta: ventaMia.id_venta }),
+            tieneReceta: true,
           };
 
           const venta = await this.ventaService.registrarVenta(ventaData);
@@ -121,6 +136,9 @@ export class ProviderService {
             fechaTracking: this.formatoFecha(Number(filas.getCell(10).value)),
             sector: String(filas.getCell(9).value),
             venta: venta._id,
+            idTracking: 0,
+            idTrackingActividad: 0,
+            nombreOperador: 'sin operador',
           };
           await this.seguimiento.crearSeguimiento(seguimiento);
         }
@@ -151,8 +169,6 @@ export class ProviderService {
   }
 
   private async registrarAtribustosLente(data: VentaApiMia) {
-    console.log(data);
-
     try {
       if (data) {
         const [
@@ -215,7 +231,7 @@ export class ProviderService {
         return receta;
       }
     } catch (error) {
-      console.log(error);
+      console.log('err de receta', data);
     }
   }
 
@@ -233,14 +249,12 @@ export class ProviderService {
     try {
       const filas: Exceljs.Row[] = [];
 
-      // Primero, extraemos todas las filas (saltamos la cabecera)
       hoja.eachRow((fila, index) => {
         if (index !== 1) {
           filas.push(fila);
         }
       });
 
-      // Ahora procesamos fila por fila con control de asincronía
       for (const fila of filas) {
         const sucursal = fila.getCell(1).value;
         const proceso = fila.getCell(2).value;
@@ -261,7 +275,6 @@ export class ProviderService {
         const tiempoTransporte = fila.getCell(17).value;
         const tipo = fila.getCell(18).value;
 
-      
         const sucur = await this.sucursalService.verificarSucursal(
           String(sucursal).toUpperCase(),
         );
@@ -302,8 +315,7 @@ export class ProviderService {
             tiempoTransporte: Number(tiempoTransporte),
             tinte: Number(tinte),
             tipo: String(tipo).trim(),
-            esperaMontura:Number(esperaMontura)
-          
+            esperaMontura: Number(esperaMontura),
           });
         }
       }
@@ -311,5 +323,141 @@ export class ProviderService {
       console.error('Error al registrar tiempos de entrega:', error);
       throw error;
     }
+  }
+
+  async guardarPedidos(providerDto: ProviderDto) {
+    const pedido = await this.ProviderNovarService.listarTrackings(providerDto);
+    for (const item of pedido) {
+      const [ventaMia, tracking, sucursal] = await Promise.all([
+        this.apiVentaMia(`${item.Identificador}`),
+        this.ProviderNovarService.obtenerActividadTracking(
+          `${item.IdTracking}`,
+        ),
+        this.sucursalService.guradarSucursal(item.NombreCuenta),
+      ]);
+      const combinacion = await this.registrarAtribustosLente(ventaMia);
+      const codigo = item.Detalle.split('-');
+
+      const ventaData: VentaI = {
+        codigo: codigo[0].trim(),
+        idTracking: item.IdTracking,
+        descripcion: item.Detalle,
+        descripcionCombinacion: ventaMia.descripcion,
+        pedido: item.Identificador,
+        fechaVenta: item.FechaAlta,
+        estado: item.NombreEsArg.toUpperCase(),
+        sucursal: sucursal._id,
+        ...(ventaMia && { descripcionCombinacion: ventaMia.descripcion }),
+        ...(combinacion && { combinacionReceta: combinacion._id }),
+        ...(ventaMia && { id_venta: ventaMia.id_venta }),
+        tieneReceta: combinacion ? true : false,
+      };
+
+      const venta = await this.ventaService.registrarVenta(ventaData);
+
+      for (const value of tracking) {
+        const seguimiento: CrearSeguimiento = {
+          tracking: value.NombreEventoEsArg,
+          reproceso: value.IsReproceso == 1 ? 'si' : 'no',
+          fechaTracking: value.FechaAlta,
+          sector: value.NombreSector,
+          venta: venta._id,
+          idTracking: value.IdTracking,
+          idTrackingActividad: value.IdTrackingActividad,
+          nombreOperador: value.NombreOperador,
+        };
+        await this.seguimiento.crearSeguimiento(seguimiento);
+      }
+    }
+    await Promise.all([
+      this.logsService.registroLogDescarga('Venta', providerDto.fechaFin),
+      this.logsService.registroLogDescarga('Seguimiento', providerDto.fechaFin),
+    ]);
+
+    this.notificadorEvento(providerDto.fechaFin, 'Venta');
+  }
+
+  async sicronizarSeguimiento() {
+    const date = new Date();
+    const ventas = await this.ventaService.ventasSinFinalizar();
+    for (const item of ventas) {
+      const seguimientos =
+        await this.ProviderNovarService.obtenerActividadTracking(
+          `${item.idTracking}`,
+        );
+
+      for (const value of seguimientos) {
+        const seguimiento: CrearSeguimiento = {
+          tracking: value.NombreEventoEsArg,
+          reproceso: value.IsReproceso == 1 ? 'si' : 'no',
+          fechaTracking: value.FechaAlta,
+          sector: value.NombreSector,
+          venta: item._id,
+          idTracking: value.IdTracking,
+          idTrackingActividad: value.IdTrackingActividad,
+          nombreOperador: value.NombreOperador,
+        };
+        await this.seguimiento.crearSeguimiento(seguimiento);
+
+        if (value.NombreEventoEsArg === 'Entregado Sucursal/Cliente') {
+          await this.ventaService.cambiarEstadoVenta(item._id, 'FINALIZADO');
+        }
+        if (value.NombreEventoEsArg === 'Pedido Anulado') {
+          await this.ventaService.cambiarEstadoVenta(item._id, 'ANULADO');
+        }
+      }
+    }
+
+    await this.logsService.registroLogDescarga(
+      'Seguimiento',
+      this.formatoFecha2(date),
+    );
+
+    this.notificadorEvento(this.formatoFecha2(date), 'Seguimiento');
+  }
+
+  @Cron('*/20 * * * *')
+  async sincronizarTrackingsCron() {
+    await this.sicronizarSeguimiento();
+    this.logger.debug(`Sincronizando Pedidos`);
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async sincronizarVentasCron() {
+    const date = new Date();
+    const fechaFin = new Date(date);
+    const fechaInicio = new Date(date);
+    fechaInicio.setHours(date.getHours() - 2);
+
+    const fecha: ProviderDto = {
+      fechaInicio: this.formatoFecha2(fechaInicio),
+      fechaFin: this.formatoFecha2(fechaFin),
+    };
+    await this.guardarPedidos(fecha);
+    this.logger.debug(
+      `Sincronizando ventas|pedidos: ${fecha.fechaInicio} → ${fecha.fechaFin}`,
+    );
+  }
+
+  formatoFecha2(d: Date) {
+    const año = d.getFullYear();
+    const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+    const dia = d.getDate().toString().padStart(2, '0');
+    const hora = d.getHours().toString().padStart(2, '0');
+    const minuto = d.getMinutes().toString().padStart(2, '0');
+    const segundo = d.getSeconds().toString().padStart(2, '0');
+    return `${año}-${mes}-${dia}T${hora}:${minuto}:${segundo}`;
+  }
+
+  notificadorEvento(fecha: string, schema: string) {
+    const fechaFormateada = new Date(fecha).toLocaleString('es-ES', {
+      dateStyle: 'full',
+      timeStyle: 'short',
+    });
+    const mensaje = `Se sincronizó el esquema "${schema}" hasta la fecha y hora: ${fechaFormateada}.`;
+
+    this.eventEmitter.emit('notificacion.sincronizacion', {
+      mensaje: mensaje,
+    });
   }
 }

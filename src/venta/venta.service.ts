@@ -26,6 +26,7 @@ import { estadoAntireflejoE } from 'src/tiempo-produccion/enum/estadoAntireflejo
 import { TipoLenteE } from 'src/combinacion-tiempo/enum/tipoLente';
 import { RangoTipoE } from 'src/core/enum/rangoE';
 import { BuscadorDto } from './dto/buscadorDto';
+import { VentaI } from './interface/crearVentaI';
 
 @Injectable()
 export class VentaService {
@@ -44,8 +45,12 @@ export class VentaService {
     private readonly materialService: MaterialService,
     private readonly tipoColorService: TipoColorService,*/
   ) {}
-  registrarVenta(crearVentaI: CreateVentaDto) {
-    return this.venta.create(crearVentaI);
+  async registrarVenta(crearVentaI: VentaI) {
+    const venta = await this.venta.findOne({ pedido: crearVentaI.pedido });
+    if (!venta) {
+      return this.venta.create(crearVentaI);
+    }
+    return venta;
   }
 
   async verificarVentaExiste(pedido: string) {
@@ -71,7 +76,7 @@ export class VentaService {
           new Date(buscadorDto.fechaFin).setUTCHours(23, 59, 59, 999),
         ),
       },
-      estado:{$ne:'Anulado'}
+      estado: { $ne: 'ANULADO' }
     };
 
     const pipeline: PipelineStage[] = [
@@ -113,7 +118,7 @@ export class VentaService {
         venta.sucursal,
         seguimiento,
       );
-     
+
       const data = {
         estado: venta.estado,
         fechaVenta: venta.fechaVenta,
@@ -222,14 +227,11 @@ export class VentaService {
         tratamiento: comb.tratamiento,
       };
 
-      
-      
-      
       const [tiemposCombinacion, rango] = await Promise.all([
         this.combinacionTiempoService.buscarCombiancionTiempo(data),
         this.rangoService.findOne(comb.rango),
       ]);
-    
+
       if (tiemposCombinacion) {
         const resultado: string = await this.tiempoPrometido(
           tiemposCombinacion._id,
@@ -251,32 +253,38 @@ export class VentaService {
   ) {
     let antireflejo = 'SIN ANTIREFLEJO';
     let estadoProeceso = 'SIN BISELADO';
-    let estadoLente = "TERMINADO"
+    let estadoLente = 'TERMINADO';
 
     for (const data of seguimientos) {
-        if(data.tracking == "Biselado"){
-          estadoProeceso = "CON BISELADO"
-        }
-        if(data.tracking == "Antireflejo / Blue"){
-          antireflejo = "CON ANTIREFLEJO"
-        }
-    }
-    if(tipo == RangoTipoE.laboratorio ){
-      estadoLente ="SEMI TERMINADO"
-    }
+      if (data.tracking === 'Biselado' || data.sector === 'Biselado') {
+        estadoProeceso = 'CON BISELADO';
+      }
 
+      if (
+        data.tracking === 'Antireflejo / Blue' ||
+        data.sector === 'Antireflejo'
+      ) {
+        antireflejo = 'CON ANTIREFLEJO';
+      }
+    }
+    if (tipo === RangoTipoE.laboratorio) {
+      estadoLente = 'SEMI TERMINADO';
+    }
 
     let resultado: number = 0;
+    
+    
     const tiempo =
       await this.tiempoProduccionService.tiempoProduccionPorCombinacionTiempo(
         combinacion,
         tipo,
         sucursal,
         antireflejo,
-       estadoProeceso,
-       estadoLente
+        estadoProeceso,
+        estadoLente
       );
-
+    
+      
     if (tiempo) {
       resultado =
         tiempo.recepcion +
@@ -284,14 +292,17 @@ export class VentaService {
         tiempo.calculo +
         tiempo.digital +
         tiempo.antireflejo +
-        tiempo.bisel +
+        tiempo.bisel + 
+      /*  (antireflejo === 'CON ANTIREFLEJO' ? tiempo.antireflejo : 0) +
+        (estadoProeceso === 'CON BISELADO' ? tiempo.bisel : 0) +*/
         tiempo.tinte +
         tiempo.despacho +
         tiempo.controlCalidad +
         tiempo.tiempoTransporte +
-        tiempo.tiempoLogisticaEntrega + 
+        tiempo.tiempoLogisticaEntrega +
         tiempo.esperaMontura;
     }
+
     const { dias, horasRestantes, minutosRestantes, totalHoras } =
       convertirHorasADiasYMinutos(resultado);
     return dias > 0
@@ -299,15 +310,38 @@ export class VentaService {
       : `${totalHoras}h ${minutosRestantes}m `;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} venta`;
+  ventasSinFinalizar() {
+    return this.venta.aggregate<{
+      id_venta: string;
+      pedido: number;
+      idTracking: number;
+      estado: string;
+      _id: Types.ObjectId;
+    }>([
+      {
+        $match: {
+          estado: { $ne: 'FINALIZADO' },
+        },
+      },
+      {
+        $limit: 200,
+      },
+      {
+        $project: {
+          _id: 1,
+          id_venta: 1,
+          pedido: 1,
+          idTracking: 1,
+          estado: 1,
+        },
+      },
+    ]);
   }
 
-  update(id: number, updateVentaDto: UpdateVentaDto) {
-    return `This action updates a #${id} venta`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} venta`;
+  cambiarEstadoVenta(idventa: Types.ObjectId, estado: string) {
+    return this.venta.updateOne(
+      { _id: new Types.ObjectId(idventa) },
+      { estado: estado },
+    );
   }
 }
